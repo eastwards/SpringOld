@@ -103,7 +103,7 @@ abstract class Entity extends Object implements IEntity
 	 * @param	string	$col	字段名称[只支持一个字段]
 	 * @return	mixed(array|string|int|float)
 	 */
-	public function findOne($id, $col = '')
+	public function findOne($id = 0, $col = '')
 	{
 		if ( empty($id) )
 		{
@@ -112,7 +112,14 @@ abstract class Entity extends Object implements IEntity
 
 		if ( isset($this->row[$id]) && !$this->change )
 		{
-			return $this->row[$id];
+			if ( $col )
+			{
+				return isset($this->row[$id][$col]) ? $this->row[$id][$col] : '';
+			}
+			else
+			{
+				return $this->row[$id];
+			}
 		}
 
 		$rule['eq']    = array( $this->pk => $id );
@@ -277,6 +284,23 @@ abstract class Entity extends Object implements IEntity
 		$this->createDbObject();
 		
 		return $this->db->rollBack();
+	}
+
+	/**
+	 * 释放资源
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function __destruct()
+	{
+		$this->dsId     = null;
+		$this->db       = null;
+		$this->tableKey = null;
+		$this->pk       = null;
+		$this->debug    = null;
+		$this->row      = null;
+		$this->change   = null;
 	}
 }
 ?>

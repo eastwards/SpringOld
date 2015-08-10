@@ -102,8 +102,6 @@ class View
 			if ( is_array($this->tplVar) && !empty($this->tplVar) ) 
 			{
 				$data = json_encode($this->tplVar);
-				$js   = "<script>var data = $data;</script>";
-				print $js;
 			}
 			require($file);
 		}

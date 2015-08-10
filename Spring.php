@@ -70,6 +70,9 @@ defined('LogDir')	   or define('LogDir', ResourceDir.'/Log');
 //缓存组件配置信息目录
 defined('CacheDir')	   or define('CacheDir', ResourceDir.'/Cache');
 
+//实体数据缓存目录
+defined('EntityCacheDir') or define('EntityCacheDir', CacheDir.'/Entity');
+
 //是否缓存对象资源
 defined('IsCached')	   or define('IsCached', false);
 

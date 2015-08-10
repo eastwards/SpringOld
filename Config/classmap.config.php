@@ -26,7 +26,8 @@ $classMap = array(
 	'Log'                => LibDir.'/Util/Tool/Log.php',
 	'RpcServer'		     => LibDir.'/Util/Rpc/RpcServer.php',
 	'RpcClient'			 => LibDir.'/Util/Rpc/RpcClient.php',
-	'CacheApi'			 => LibDir.'/ORM/Util/cache.api.php',
+	'MemCacheApi'		 => LibDir.'/ORM/Util/memcache.api.php',
+	'FileCacheApi'		 => LibDir.'/ORM/Util/filecache.api.php',
 	'BaseCacheApi'		 => LibDir.'/ORM/Util/basecache.api.php',
 	'SphinxApi'			 => LibDir.'/ORM/Util/sphinx.api.php',
 	);

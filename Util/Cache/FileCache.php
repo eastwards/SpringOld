@@ -1,7 +1,7 @@
 <?
 /**
  +------------------------------------------------------------------------------
- * Spring框架	文件缓存组件(辅助工具)
+ * Spring框架	php文件代码缓存组件
  +------------------------------------------------------------------------------
  * @mobile  13183857698
  * @oicq    78252859
@@ -14,16 +14,11 @@ class FileCache implements ICache
 	/**
 	 * 缓存路径
 	 */
-	public $path   = null;
-	
-	/**
-	 * 缓存过期时间(默认为5分钟) 
-	 */
-	public $expire = 300;
+	public $path = null;
 
 
 	/**
-	 * 类的构造子
+	 * 初始化
 	 *
 	 * @access	public
 	 * @return	void
@@ -40,133 +35,65 @@ class FileCache implements ICache
 	 */
 	public function __destruct()
 	{
-		 $this->path   = null;
-		 $this->expire = null;
-	}
-
-	/**
-	 * 初始化检查
-	 *
-	 * @access	public
-	 * @return	void
-	 */
-	private function init()
-	{
-		if ( file_exists($this->path) ) 
-		{
-			return true;
-		}
-
-		$dirs  = explode('/', $this->path);
-		$total = count($dirs);
-		$temp  = '';
-		for ( $i=0; $i<$total; $i++ )
-		{
-			$temp .= $dirs[$i].'/';
-			if ( !is_dir($temp) )
-			{
-				if( !@mkdir($temp) ) return false;
-				@chmod($temp, 0777);
-			}
-		}
-		return true;
+		$this->path = null;
 	}
 
 	/**
 	 * 写入数据
 	 *
 	 * @access	public
-	 * @param	mixed	$key	键 
-	 * @param	mixed   $value  值
-	 * @param	int		$expire 缓存时间(0持久存储)
+	 * @param	mixed	$key		键 
+	 * @param	mixed   $value		值
+	 * @param	int		$expire		缓存时间(0持久存储)
+	 * @param	int		$encoding	编码方式(0-3)
 	 * @return	bool
 	 */
-	public function set($key, $value, $expire = 0)
+	public function set($key, $value, $expire = 0, $encoding = 0)
 	{
-		if ( !$this->init() ) 
-		{
-			return false;
-		}
-		$key        = serialize($key);
-		$expire     = $expire > 0 ? time() + $expire : time() + $this->expire;
-		$file       = $this->path.'/'.md5($key).'.php';
-		$fileExpire = $this->path.'/'.md5($key).'_expire.php';
-		if ( empty($value) )
-		{
-			if ( file_exists($file) ) @unlink($file);
-			if ( file_exists($fileExpire) ) @unlink($fileExpire);
-
-			return true;
-		}
-
-		file_put_contents($fileExpire, $expire);
-		$data = serialize($value);
-		$bool = file_put_contents($file, $data);
-
-		if ( $bool )
-		{
-			clearstatcache();
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		$key  = md5(serialize($key));
+		$file = $this->path.'/'.$key.'.php';
+		
+		return $this->createFile('var', $value, $file);
 	}
 
 	/**
 	 * 获取数据
 	 *
 	 * @access	public
-	 * @param	mixed	$key	键 
+	 * @param	mixed	$key		键 
+	 * @param	int		$encoding	编码方式(0-3)
 	 * @return	mixed
 	 */
-	public function get($key)
+	public function get($key, $encoding = 0)
 	{
-		if( !$this->init() ) 
-		{
-			return false;
-		}
-
-		$key  = serialize($key);
-		$file = $this->path.'/'.md5($key).'.php';
+		$key  = md5(serialize($key));
+		$file = $this->path.'/'.$key.'.php';
+		
 		if ( !file_exists($file) )
 		{
 			return null;
 		}
-
-		$fileExpire = $this->path.'/'.md5($key).'_expire.php';
-		$life       = file_exists($fileExpire) ? file_get_contents($fileExpire) : 0;
-		if ( time() > $life )
-		{
-			if ( file_exists($file) ) @unlink($file);
-			if ( file_exists($fileExpire) ) @unlink($fileExpire);
-			return null;
-		}
-
-		$data = file_get_contents($file);
-		if ( empty($data) ) 
-		{
-			return null;
-		}
 		
-		return unserialize($data);
+		require($file);
+
+		return $var;
 	}
 
 	/**
 	 * 删除数据
 	 *
 	 * @access	public
-	 * @param	mixed	$key	键
-	 * @return	bool
+	 * @param	mixed	$key		键
+	 * @param	int		$encoding	编码方式(0-3)
+	 * @return	mixed
 	 */
-	public function remove($key)
+	public function remove($key, $encoding = 0)
 	{
-		$key  = serialize($key);
-		$file = $this->path.'/'.md5($key).'.php';
-		if ( file_exists($file) )	
+		$key  = md5(serialize($key));
+		$file = $this->path.'/'.$key.'.php';
+		if ( file_exists($file) )
 		{
-			return @unlink($file);
+			@unlink($file);
 		}
 		return false;
 	}
@@ -192,6 +119,20 @@ class FileCache implements ICache
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * 删除数据
+	 *
+	 * @access	private
+	 * @param	string	$name	变量名
+	 * @param	mixed	$value	变量值
+	 * @param	string	$file	缓存文件
+	 * @return	bool
+	 */
+	private function createFile($name, $value, $file)
+	{
+		return @file_put_contents($file, '<?$'.$name.'='.var_export($value, true).';?>');
 	}
 }
 ?>

@@ -167,6 +167,7 @@ class Session
 function authCode($string, $operation = 'DECODE', $key = '', $expiry = 0)
 {
 	$authKey     = defined('AuthKey') ? AuthKey : md5('8905c0eZJYeXPgc2');
+	$authKey    .= isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
 	$ckey_length = 4;
 	$key         = md5($key != '' ? $key : $authKey);
 	$keya        = md5(substr($key, 0, 16));
