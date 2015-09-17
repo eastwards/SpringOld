@@ -36,7 +36,7 @@ abstract class RpcClient
 		$method = $uri[1];
 		try
 		{
-			$client = new Yar_client("$this->url$module");
+			$client = new Yar_client("$this->url$name");
 
 			return $client->$method($param);
 		}
