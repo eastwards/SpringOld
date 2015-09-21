@@ -228,5 +228,44 @@ class UploadFile
 		$this->msg = "网络故障,上传失败";
 		return false;
 	}
+	
+	/**
+	 * 文件上传
+	 *
+	 * @access	public
+	 * @param	array	$file	上传的文件信息 
+	 * @return	bool
+	 */
+	public function uploadMore($file)
+	{
+		$img = array();
+		foreach($file['name'] as $key=>$item){
+			if(empty($file["size"][$key]) ) {continue;}
+			/*if ( !$this->checkUpload($file['error'][$key]) ) 
+			{
+				return false;
+			}
+
+			if ( !$this->checkPath() )
+			{
+				return false;
+			}
+
+			if ( !$this->checkFile($file["name"], $file["size"]) )
+			{
+				return false;
+			}*/
+			
+			$name = $this->changeName($file["name"][$key]);
+			if ( move_uploaded_file($file["tmp_name"][$key], $this->path."/".$name) )
+			{
+				$img[] = $this->path."/".$name;
+				$this->upFile = $name;
+			}
+			$this->msg = "网络故障,上传失败";
+			
+		}
+		return $img;
+	}
 }
 ?>
