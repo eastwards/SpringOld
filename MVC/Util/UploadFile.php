@@ -240,7 +240,7 @@ class UploadFile
 	{
 		$img = array();
 		foreach($file['name'] as $key=>$item){
-			if(empty($file["size"][$key]) ) {continue;}
+			//if(empty($file["size"][$key]) ) {continue;}
 			/*if ( !$this->checkUpload($file['error'][$key]) ) 
 			{
 				return false;
@@ -261,6 +261,9 @@ class UploadFile
 			{
 				$img[] = $this->path."/".$name;
 				$this->upFile = $name;
+			}else{
+				$img[] = "";
+				
 			}
 			$this->msg = "网络故障,上传失败";
 			
