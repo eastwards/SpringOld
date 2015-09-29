@@ -255,18 +255,21 @@ class UploadFile
 			{
 				return false;
 			}*/
-			
-			$name = $this->changeName($file["name"][$key]);
-			if ( move_uploaded_file($file["tmp_name"][$key], $this->path."/".$name) )
+			if (!empty($file["name"][$key]) && !strstr(strtolower($this->upType), strtolower($this->getExt($file["name"][$key]))) )
 			{
-				$img[] = $this->path."/".$name;
-				$this->upFile = $name;
-			}else{
 				$img[] = "";
-				
+			}else{
+				$name = $this->changeName($file["name"][$key]);
+				if ( move_uploaded_file($file["tmp_name"][$key], $this->path."/".$name) )
+				{
+					$img[] = $this->path."/".$name;
+					$this->upFile = $name;
+				}else{
+					$img[] = "";
+					
+				}
 			}
 			$this->msg = "网络故障,上传失败";
-			
 		}
 		return $img;
 	}
