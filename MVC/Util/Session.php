@@ -1,4 +1,14 @@
 <?
+/**
+ +------------------------------------------------------------------------------
+ * Spring框架 Session 组件
+ +------------------------------------------------------------------------------
+ * @mobile	13183857698
+ * @qq		78252859
+ * @author  void <lkf5_303@163.com>
+ * @version 3.0
+ +------------------------------------------------------------------------------
+ */
 class Session
 {
 	/**
@@ -15,6 +25,11 @@ class Session
 	 * 域名
 	 */
 	public static $domain = '';
+
+	/**
+	 * 数据
+	 */
+	public static $data   = array();
 
 
 	/**
@@ -61,6 +76,7 @@ class Session
 			return ;
 		}
 
+		self::$data[$key] = $value;
 		Session::init();
 
 		$httponly  = false;
@@ -107,6 +123,11 @@ class Session
 	 */
 	public static function get($key, $encode = 1)
 	{
+		if ( isset(self::$data[$key]) )
+		{
+			return self::$data[$key];
+		}
+
 		Session::init();
 		$key = Session::$prefix.$key;
 
