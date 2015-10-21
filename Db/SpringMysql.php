@@ -55,21 +55,11 @@ class SpringMysql implements IDataSource
 	 * 当前执行的sql序列
 	 */
 	private $sqls         = null;
-	
-	/**
-	 * 异常信息
-	 */
-	private $errorMsg     = null;
 
 	/**
 	 * 连接池
 	 */
 	private $pool         = array();
-
-	/**
-	 * 当前连接ID
-	 */
-	private $connectId    = null;
 
 	/**
 	 * 操作所影响的行数
@@ -91,8 +81,8 @@ class SpringMysql implements IDataSource
 	public function __construct()
 	{
 		if ( !class_exists('PDO') )
-		{ 
-			SpringException::throwException('Not Support : PDO');
+		{
+			throw new SpringException("PDO扩展不存在!");
 		}
 	}
 
@@ -105,8 +95,8 @@ class SpringMysql implements IDataSource
 	public function load()
 	{
 		if ( !file_exists($this->routeFile) )
-		{ 
-			SpringException::throwException("表路由配置文件{$this->routeFile}不存在!");
+		{
+			throw new SpringException("表路由配置文件{$this->routeFile}不存在!");
 		}
 
 		require($this->routeFile);
@@ -131,7 +121,6 @@ class SpringMysql implements IDataSource
 		$this->dbLog        = null;
 		$this->table        = null;
 		$this->sqls         = null;
-		$this->errorMsg     = null;
 		$this->affectedRows = null;
 		$this->PDOStatement = null;
 	}
@@ -357,16 +346,16 @@ class SpringMysql implements IDataSource
 	 */
 	public function begin($tableKey)
 	{
-		$this->getTable($tableKey, 1);
+		$this->getTable($tableKey);
 		$this->connect();
-		if ( $this->errorMsg ) 
+		
+		if ( !isset($this->pool[$this->dbId]->transaction) )
 		{
-			return false;
+			$this->transaction = true;
+			$this->pool[$this->dbId]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$this->pool[$this->dbId]->beginTransaction();
+			$this->pool[$this->dbId]->transaction = true;
 		}
-
-		$this->transaction = true;
-		$this->connectId->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		$this->connectId->beginTransaction();
 
 		return true;
 	}
@@ -375,42 +364,59 @@ class SpringMysql implements IDataSource
 	 * 提交事务
 	 *
 	 * @access	public
+	 * @param	string	$tableKey	数据表标识
 	 * @return	bool
 	 */
-	public function commit()
+	public function commit($tableKey)
 	{
-		if ( !$this->transaction )
+		$this->getTable($tableKey);
+		$this->connect();
+
+		if ( !isset($this->pool[$this->dbId]->transaction) )
 		{
 			return false;
 		}
 
 		try
 		{
-			$this->connectId->commit();
-			return true;
+			$this->pool[$this->dbId]->commit();
+			$bool = true;
 		}
 		catch(PDOException $e)
 		{
-			$this->connectId->rollBack();
-			SpringException::writeLog($e->getMessage());
-			return false;
+			$this->pool[$this->dbId]->handle = $this->pool[$this->dbId]->rollBack();
+			ErrorHandle::record($e->getMessage(), 'error');
+			$bool = false;
 		}
+		unset($this->pool[$this->dbId]->transaction);
+		return $bool;
 	}
 
 	/**
 	 * 回滚事务
 	 *
 	 * @access	public
+	 * @param	string	$tableKey	数据表标识
 	 * @return	bool
 	 */
-	public function rollBack()
+	public function rollBack($tableKey)
 	{
-		if ( !$this->transaction )
+		$this->getTable($tableKey);
+		$this->connect();
+
+		if ( isset($this->pool[$this->dbId]->transaction) )
 		{
-			return false;
+			$bool = $this->pool[$this->dbId]->rollBack();
+			unset($this->pool[$this->dbId]->transaction);
+			return $bool;
 		}
 
-		return $this->connectId->rollBack();
+		if ( isset($this->pool[$this->dbId]->handle) )
+		{
+			return $this->pool[$this->dbId]->handle;
+		}
+
+		return false;
 	}
 
 	/**
@@ -426,7 +432,7 @@ class SpringMysql implements IDataSource
 	{
 		if ( !isset($this->tbl[$key]) ) 
 		{
-			SpringException::throwException("key: $key 对应的数据表不存在!");
+			throw new SpringException("key: $key 对应的数据表不存在!");
 		}
 
 		if ( !isset($this->tbl[$key]['dbId']) 
@@ -434,7 +440,7 @@ class SpringMysql implements IDataSource
 			|| !isset($this->tbl[$key]['configFile'])
 			)
 		{
-			SpringException::throwException("key: $key 对应的数据表配置节点错误!");
+			throw new SpringException("key: $key 对应的数据表配置节点错误!");
 		}
 		
 		$config      = $this->tbl[$key]['configFile'];
@@ -517,6 +523,11 @@ class SpringMysql implements IDataSource
 			}
 			$scope = implode(' and ', $kv);
 			$where .= $where ? ($kv ? " and $scope " : "") : $scope;
+		}
+
+		//原始条件（下个版本会废弃，建议使用 raw）
+		if ( isset($rule['other']) && is_string($rule['other']) && !empty($rule['other']) ) {
+			$where .= $where ? " and " . $rule['other'] : $rule['other'];
 		}
 
 		//原始条件
@@ -620,39 +631,30 @@ class SpringMysql implements IDataSource
 	{
 		if ( isset($this->pool[$this->dbId]) && $this->pool[$this->dbId] ) 
 		{
-			$this->connectId = $this->pool[$this->dbId];
 			return ;
 		}
 		
-		if (  !isset($this->pool[$this->dbId]) || !$this->pool[$this->dbId] )
+		if ( !file_exists($this->configFile) ) 
 		{
-			if ( !file_exists($this->configFile) ) 
+			throw new SpringException("数据库配置文件：".$this->configFile."不存在!");
+		}
+		
+		require($this->configFile);
+		try
+		{
+			$this->pool[$this->dbId] = new PDO($dsn, $user, $password);
+			$this->pool[$this->dbId]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$this->pool[$this->dbId]->exec("set names $encode");
+			$dsn = $user = $password = $encode = null;
+			if ( !$this->pool[$this->dbId] )
 			{
-				SpringException::throwException("数据库配置文件：".$this->configFile."不存在!");
+				throw new SpringException("PDO CONNECT ERROR!");
 			}
-
-			require($this->configFile);
-
-			try
-			{
-				$this->connectId = new PDO($dsn, $user, $password);
-				$this->connectId->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-				$this->connectId->exec("set names $encode");
-
-				$dsn = $user = $password = $encode = null;
-
-				if ( $this->connectId == null )
-				{
-					$this->errorMsg = "PDO CONNECT ERROR";
-					SpringException::writeLog($this->errorMsg);
-				}
-				$this->pool[$this->dbId] = $this->connectId;
-			}
-			catch ( PDOException $e )
-			{
-				$this->errorMsg = $e->getMessage();
-				SpringException::writeLog($this->errorMsg);
-			}
+		}
+		catch ( PDOException $e )
+		{
+			throw new SpringException($e);
+			return ;
 		}
 	}
 	
@@ -668,8 +670,7 @@ class SpringMysql implements IDataSource
 		{
 			$this->pool[$key] = null;
 		}
-		$this->pool      = null;
-		$this->connectId = null;
+		$this->pool = null;
 	}
 	 
 	/**
@@ -693,17 +694,13 @@ class SpringMysql implements IDataSource
 	public function query($sql)
 	{
 		$this->connect();
-		if ( $this->errorMsg ) 
-		{
-			return false;
-		}
 		
 		if ( empty($sql) ) 
 		{
 			return false;
 		}
 		$this->record($sql);
-		$this->affectedRows = $this->connectId->exec($sql);
+		$this->affectedRows = $this->pool[$this->dbId]->exec($sql);
 
 		return $this->affectedRows >= 0 ? true : false; 
 	}
@@ -716,7 +713,7 @@ class SpringMysql implements IDataSource
 	 */
 	public function getAffected()
 	{
-		if ( $this->connectId == null ) 
+		if ( !isset($this->pool[$this->dbId]) ) 
 		{
 			return 0;
 		}
@@ -731,9 +728,9 @@ class SpringMysql implements IDataSource
 	 */
 	public function getLastInsId()
 	{
-		if ( $this->connectId != null )
+		if ( isset($this->pool[$this->dbId]) )
 		{
-			return $this->connectId->lastInsertId(); 
+			return $this->pool[$this->dbId]->lastInsertId(); 
 		}
 		return 0;		
 	}
@@ -748,14 +745,10 @@ class SpringMysql implements IDataSource
 	public function getRow($sql)
 	{
 		$this->connect();
-		if ( $this->errorMsg ) 
-		{
-			return array();
-		}
 
 		$this->record($sql);
 		$result             = array();
-		$this->PDOStatement = $this->connectId->prepare($sql);
+		$this->PDOStatement = $this->pool[$this->dbId]->prepare($sql);
 		$this->PDOStatement->execute();
 		
 		if ( empty($this->PDOStatement) )
@@ -780,14 +773,10 @@ class SpringMysql implements IDataSource
 	public function getRows($sql)
 	{
 		$this->connect();
-		if ( $this->errorMsg ) 
-		{
-			return array();
-		}
 
 		$this->record($sql);
 		$result             = array();
-		$this->PDOStatement = $this->connectId->prepare($sql);
+		$this->PDOStatement = $this->pool[$this->dbId]->prepare($sql);
 		$this->PDOStatement->execute();
 		
 		if ( empty($this->PDOStatement) )
@@ -978,7 +967,7 @@ class SpringMysql implements IDataSource
 		$error = $this->PDOStatement->errorInfo();
 		$str   = $error[2];
 		$str  .= "\n [ SQL语句 ] : ".$sql;
-		SpringException::writeLog($str);
+		ErrorHandle::record($str, 'error');
 	}
 }
 ?>

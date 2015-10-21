@@ -40,19 +40,5 @@ abstract class AppModule extends Module
 		
 		return $bi;
 	}
-
-	/**
-	 * 获取用户的姓名
-	 * @author	void
-	 * @since	2015-06-12
-	 *
-	 * @access	public
-	 * @param	int		$userId		用户id
-	 * @return	string
-	 */
-	public function getName($userId)
-	{
-		return $this->import('user', 2)->get($userId, 'name');
-	}
 }
 ?>

@@ -55,14 +55,15 @@ abstract class Entity extends Object implements IEntity
 	 */
 	protected function createDbObject()
 	{
-		if ( $this->db )
-		{
-			return '';
-		}
-
-		$this->db = $this->com($this->dsId);
+		!$this->db && $this->db = $this->com($this->dsId);
+		
 		if ( $this->debug === true )
 		{
+			if ( $this->db->dbLog )
+			{
+				return '';
+			}
+
 			$log = $this->com('dbLog');
 			if ( get_class($log) != 'stdClass' )
 			{
@@ -109,23 +110,11 @@ abstract class Entity extends Object implements IEntity
 		{
 			return array();
 		}
-
-		if ( isset($this->row[$id]) && !$this->change )
-		{
-			if ( $col )
-			{
-				return isset($this->row[$id][$col]) ? $this->row[$id][$col] : '';
-			}
-			else
-			{
-				return $this->row[$id];
-			}
-		}
-
+		
 		$rule['eq']    = array( $this->pk => $id );
 		$rule['slice'] = $this->slice;
 		$this->createDbObject();
-		$data = $this->db->findOne($this->tableKey, $rule);
+		$data          = $this->db->findOne($this->tableKey, $rule);
 		
 		if ( $col )
 		{
@@ -270,7 +259,7 @@ abstract class Entity extends Object implements IEntity
 	{
 		$this->createDbObject();
 		
-		return $this->db->commit();
+		return $this->db->commit($this->tableKey);
 	}
 
 	/**
@@ -283,7 +272,7 @@ abstract class Entity extends Object implements IEntity
 	{
 		$this->createDbObject();
 		
-		return $this->db->rollBack();
+		return $this->db->rollBack($this->tableKey);
 	}
 
 	/**

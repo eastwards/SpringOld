@@ -48,7 +48,7 @@ class DbQuery
 
 		if ( !class_exists('PDO') )
 		{ 
-			SpringException::throwException('Not Support : PDO');
+			throw new SpringException('Not Support : PDO');
 		}
 	}
 
@@ -85,13 +85,13 @@ class DbQuery
 			if ( $this->connectId == null )
 			{
 				$this->errorMsg = "PDO CONNECT ERROR";
-				SpringException::writeLog($this->errorMsg);
+				ErrorHandle::record($this->errorMsg, 'error');
 			}
 		}
 		catch ( PDOException $e )
 		{
 			$this->errorMsg = $e->getMessage();
-			SpringException::writeLog($this->errorMsg);
+			ErrorHandle::record($this->errorMsg, 'error');
 		}
 	}
 	
@@ -183,7 +183,7 @@ class DbQuery
 		$error = $this->PDOStatement->errorInfo();
 		$str   = $error[2];
 		$str  .= "\n [ SQL语句 ] : ".$sql;
-		SpringException::writeLog($str);
+		ErrorHandle::record($str, 'error');
 	}
 }
 ?>

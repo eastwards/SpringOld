@@ -2,6 +2,7 @@
 define('WebDir', '.');						//定义项目路径
 require('../Spring/Spring.php');		    //载入框架入口文件
 require(LibDir.'/Util/Tool/MakeCode.php');	//载入代码生成工具
+Spring::init();
 
 //指定数据库名、表前缀
 $configs = array(

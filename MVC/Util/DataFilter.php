@@ -73,8 +73,11 @@ class DataFilter
 	 */
 	private function cleanValue($val)
 	{
-		if ( is_array($val) ) return "";
-		if ( $val == "" ) return "";
+		if ( is_array($val) || $val == "") 
+		{
+			return "";
+		}
+		
 		$val = str_replace( "&#032;", " ", $val );
 		$val = str_replace( "&"            , "&amp;"         , $val );
 		$val = str_replace( "<!--"         , "&#60;&#33;--"  , $val );
@@ -86,7 +89,7 @@ class DataFilter
 		$val = preg_replace( "/\n/"        , "<br>"          , $val );
 		$val = preg_replace( "/\\\$/"      , "&#036;"        , $val );
 		$val = preg_replace( "/\r/"        , ""              , $val ); 
-		//$val = str_replace( "!"            , "&#33;"         , $val );
+		$val = str_replace( "!"            , "&#33;"         , $val );
 		$val = str_replace( "'"            , "&#39;"         , $val ); 
 		if ( get_magic_quotes_gpc() )
 		{

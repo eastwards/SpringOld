@@ -40,32 +40,32 @@ abstract class Action extends ModelActionBase
 	/**
 	 * 前置操作(框架自动调用)
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @return	void
 	 */
-	public function before()
+	protected function before()
 	{
 	}
 
 	/**
 	 * 后置操作(框架自动调用)
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @return	void
 	 */
-	public function after()
+	protected function after()
 	{
 	}
 
 	/**
 	 * 设置模板变量
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	mixed	$key	键 
 	 * @param	mixed	$value	值
 	 * @return	void
 	 */
-	public final function set($key, $value)
+	protected function set($key, $value)
 	{
 		$this->com('view')->set($key, $value);
 	}
@@ -73,11 +73,11 @@ abstract class Action extends ModelActionBase
 	/**
 	 * 装载模板文件、解析变量并显示
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	$file	文件名
 	 * @return	void
 	 */
-	public final function display($file = null)
+	protected function display($file = null)
 	{
 		if ( in_array($this->action, $this->caches) && !$this->input['isPost'] )
 		{
@@ -108,11 +108,11 @@ abstract class Action extends ModelActionBase
 	/**
 	 * 装载模板文件、解析变量并显示(php变量js化)
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	$file	文件名
 	 * @return	void
 	 */
-	public final function output($file = null)
+	protected function output($file = null)
 	{
 		if ( $file )
 		{
@@ -130,11 +130,11 @@ abstract class Action extends ModelActionBase
 	/**
 	 * 装载模板文件、解析变量,返回解析后的html
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	$file	文件名
 	 * @return	string
 	 */
-	public final function fetch($file = null)
+	protected function fetch($file = null)
 	{
 		return $this->com('view')->fetch($file);
 	}
@@ -146,7 +146,7 @@ abstract class Action extends ModelActionBase
 	 * @param	string	$action	方法名
 	 * @return	void
 	 */
-	public final function call($action)
+	public function call($action)
 	{
 		$this->mod     = strtolower( str_replace( 'Action', '', get_class($this) ) );
 		$this->action  = strtolower( $action );
@@ -188,7 +188,10 @@ abstract class Action extends ModelActionBase
 			!$this->isPost() && Session::set($key, $this->action);
 			if ( $this->isPost() )
 			{
-				Session::get($key) != $this->action && SpringException::throwException('非法请求!');
+				if ( Session::get($key) != $this->action )
+				{
+					throw new SpringException('非法请求!');
+				}
 				Session::remove($key);
 			}
 		}
@@ -213,17 +216,17 @@ abstract class Action extends ModelActionBase
 	/**
 	 * 获取表单数据
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	$name	表单模型名
 	 * @return	array			返回表单数据
 	 */
-	public function getFormData($name = '')
+	protected function getFormData($name = '')
 	{
 		empty($name) && $name = strtolower($this->mod).strtolower($this->action);
 		$file = FormDir.'/'.$name.'.form.php';
 		if ( !file_exists($file) )
 		{
-			SpringException::throwException(" $file 不存在");
+			throw new SpringException(" $file 不存在");
 			return array();
 		}
 		
@@ -231,7 +234,7 @@ abstract class Action extends ModelActionBase
 		$class = ucfirst($name).'Form';
 		if ( !class_exists($class) )
 		{
-			SpringException::throwException(" $file 中类 $class 不存在");
+			throw new SpringException(" $file 中类 $class 不存在");
 			return array();
 		}
 
@@ -244,10 +247,10 @@ abstract class Action extends ModelActionBase
 	/**
 	 * 当前请求是否为POST
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @return	bool
 	 */
-	public final function isPost()
+	protected function isPost()
 	{
 		return Request::isPost();
 	}
@@ -273,7 +276,7 @@ abstract class Action extends ModelActionBase
 	 * @param	int		$length		参数长度(0不切取)
 	 * @return	mixed(int|float|string)
 	 */
-	public final function input($name, $type = 'string', $default = '', $length = 0)
+	public function input($name, $type = 'string', $default = '', $length = 0)
 	{
 		return Request::input($name, $type, $default, $length);
 	}
@@ -281,14 +284,14 @@ abstract class Action extends ModelActionBase
 	/**
 	 * 数据分页
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	int		$total		数据总条数
 	 * @param	int		$pageRows	每页显示条数
 	 * @param	int		$point		锚点数(数字分页时有效)
 	 * @param	string	$style		被选中锚点的样式(数字分页时有效)
 	 * @return	array
 	 */
-	public function pager($total = 0, $pageRows = 20, $point = 10, $style = 'on')
+	protected function pager($total = 0, $pageRows = 20, $point = 10, $style = 'on')
 	{
 		if ( empty($total) ) 
 		{
@@ -303,20 +306,20 @@ abstract class Action extends ModelActionBase
 		}
 		else
 		{
-			SpringException::throwException("该组件接口已被移除!");
+			throw new SpringException("该组件接口已被移除!");
 		}
 	}
 
 	/**
 	 * 显示消息提示框(带提示信息+跳转)
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	$desc		消息文本
 	 * @param	string	$url		跳转地址
 	 * @param	array	$scripts	被执行的js脚本
 	 * @return	void
 	 */
-	public final function redirect($desc, $url, $scripts = array())
+	protected function redirect($desc, $url, $scripts = array())
 	{
 		MessageBox::redirect($desc, $url, $scripts, 1);
 	}

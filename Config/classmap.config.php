@@ -1,6 +1,7 @@
 <?
 //Spring框架 类地图(键为类名、值为类文件路径)
-$classMap = array(
+return array(
+	'ErrorHandle'		 => LibDir.'/Core/ErrorHandle.php',
 	'SpringException'    => LibDir.'/Core/SpringException.php',
 	'ServiceFactory'     => LibDir.'/Core/ServiceFactory.php',
 	'Application'        => LibDir.'/Core/Application.php',

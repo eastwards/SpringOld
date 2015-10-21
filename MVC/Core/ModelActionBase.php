@@ -14,22 +14,22 @@ abstract class ModelActionBase extends Object
 	/**
 	 * sql调试开关
 	 */
-	public  $debug  = false;
+	protected $debug  = false;
 
 	/**
 	 * 模型对象缓存
 	 */
-	private $object = array();
+	private	  $object = array();
 
 	/**
 	 * 加载model对象
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	$objId	对象标识
 	 * @param	int		$rule	构造规则[1引用关系构造、2模型名构造]
 	 * @return	model
 	 */
-	public final function import($objId = null, $rule = 1)
+	protected function import($objId = null, $rule = 1)
 	{
 		//通过指定引用关系构造模型对象(推荐)
 		if ( $rule == 1 && $objId && isset($this->models[$objId]) && $this->models[$objId] )
@@ -74,11 +74,11 @@ abstract class ModelActionBase extends Object
 	/**
 	 * 加载业务组件(Module)对象
 	 *
-	 * @access	private
+	 * @access	protected
 	 * @param	string	$name	业务组件类名(不带后缀module)
 	 * @return	Module
 	 */
-	public final function load($name)
+	protected function load($name)
 	{
 		$name   = strtolower($name);
 		$module = $name.'Module';
@@ -91,13 +91,13 @@ abstract class ModelActionBase extends Object
 		$file = ModuleDir.'/'.$name.'.module.php';
 		if ( !file_exists($file) )
 		{
-			SpringException::throwException("找不到文件{$file}");
+			throw new SpringException("找不到文件{$file}");
 		}
 		
 		require_once($file);
 		if ( !class_exists($module) ) 
 		{
-			SpringException::throwException("文件{$file}中找不到类 $name");
+			throw new SpringException("文件{$file}中找不到类 $name");
 		}
 
 		$modules[$name] = new $module();

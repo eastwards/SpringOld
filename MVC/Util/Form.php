@@ -56,20 +56,20 @@ class Form
 	{
 		if ( !is_array($this->map) || empty($this->map) )
 		{
-			SpringException::throwException('映射规则错误!');
+			throw new SpringException("映射规则错误!");
 		}
 		
 		foreach ( $this->map as $key => $val )
 		{
 			if ( !is_array($val) || empty($val) || count($val) != 2 )
 			{
-				SpringException::throwException('映射规则错误!');
+				throw new SpringException("映射规则错误!");
 			}
 
 			$value = isset($this->input[$key]) ? $this->input[$key] : '';
 			if ( !isset($val['field']) || empty($val['field']) )
 			{
-				SpringException::throwException('映射的字段不能为空!');
+				throw new SpringException("映射的字段不能为空!");
 			}
 
 			$field = $val['field'];
@@ -80,7 +80,7 @@ class Form
 				$method = $val['method'];
 				if ( !method_exists($this, $method) )
 				{
-					SpringException::throwException('回调设置错误!');
+					throw new SpringException("回调设置错误!");
 				}
 				
 				$this->data[$field] = $this->$method($value);
@@ -95,7 +95,7 @@ class Form
 				$this->data[$field] = $bool ? $value : $val['match'][1];
 				continue;
 			}
-			SpringException::throwException('映射规则错误!');
+			throw new SpringException("映射规则错误!");
 		}
 
 		return $this->data;

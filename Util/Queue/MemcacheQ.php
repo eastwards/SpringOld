@@ -47,7 +47,7 @@ class MemcacheQ implements IQueue
 	{
 		if ( !class_exists('Memcache') )
 		{
-			SpringException::throwException('Not Support : Memcache');
+			throw new SpringException('Not Support : Memcache');
 		}
 		$this->mem = new Memcache();
 	}
@@ -80,7 +80,7 @@ class MemcacheQ implements IQueue
 		{
 			if ( !file_exists($this->configFile) ) 
 			{
-				SpringException::throwException("缓存配置文件：".$this->configFile."不存在!");
+				throw new SpringException("缓存配置文件：".$this->configFile."不存在!");
 			}
 
 			require($this->configFile);
@@ -88,7 +88,7 @@ class MemcacheQ implements IQueue
 
 			if ( !$this->connected ) 
 			{
-				SpringException::throwException("连接MemcacheQ失败");
+				throw new SpringException("连接MemcacheQ失败");
 			}
 			$host = $port = null;
 		}

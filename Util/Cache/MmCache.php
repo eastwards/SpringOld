@@ -42,7 +42,7 @@ class MmCache implements ICache
 	{
 		 if ( !class_exists('Memcache') )
 		 {
-			 SpringException::throwException('Not Support : Memcache');
+			 throw new SpringException('Not Support : Memcache');
 		 }
 		 $this->mem = new Memcache();
 	}
@@ -74,7 +74,7 @@ class MmCache implements ICache
 		{
 			if ( !file_exists($this->configFile) )
 			{
-				SpringException::throwException("配置文件：".$this->configFile."不存在!");
+				throw new SpringException("配置文件：".$this->configFile."不存在!");
 			}
 
 			require($this->configFile);

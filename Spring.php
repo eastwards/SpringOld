@@ -13,7 +13,7 @@
 //Spring框架目录
 defined('LibDir')      or define('LibDir', dirname(__FILE__));
 
-//当前应用程序运行的根路径
+//当前应用程序运行的根目录（rewrite时使用）
 defined('Root')        or define('Root', '/');
 
 //网站目录
@@ -22,37 +22,37 @@ defined('WebDir')      or define('WebDir', '.');
 //资源目录
 defined('ResourceDir') or define('ResourceDir', WebDir.'/Resource');
 
-//应用代码存放路径
+//应用代码存放目录
 defined('AppDir')      or define('AppDir', WebDir.'/App');
 
-//业务组件(业务组件存放路径)
+//业务组件存放目录
 defined('ModuleDir')    or define('ModuleDir', AppDir.'/Module'); 
 
-//业务逻辑(模型组件存放路径)
+//基础模型存放目录
 defined('ModelDir')    or define('ModelDir', AppDir.'/Model'); 
 
-//视图层存放路径
+//视图层存放目录
 defined('ViewDir')     or define('ViewDir', AppDir.'/View');    
 
-//控制器存放路径
+//控制器存放目录
 defined('ActionDir')   or define('ActionDir', AppDir.'/Action');
 
-//表单组件存放路径
+//表单组件存放目录
 defined('FormDir')     or define('FormDir', AppDir.'/Form');
 
 //实体层存放目录
 defined('EntityDir')   or define('EntityDir', AppDir.'/Entity');	
 
-//api代理存放路径
+//api代理存放目录
 defined('BiDir')       or define('BiDir', AppDir.'/Bi');
 
-//公用组件库路径
+//公用组件库目录
 defined('UtilDir')	   or define('UtilDir', AppDir.'/Util');
 
-//定义项目动态资源路径
-defined('DataDir')     or define('DataDir', WebDir.'Data');
+//定义项目动态资源目录
+defined('DataDir')     or define('DataDir', WebDir.'/Data');
 
-//定义项目静态资源路径
+//定义项目静态资源目录
 defined('StaticDir')   or define('StaticDir', Root.'Static/');
 
 //指定默认控制器 
@@ -85,14 +85,14 @@ ini_set("date.timezone", "Asia/Shanghai");
 class Spring
 {
 	/**
-	 * 是否开启警告
-	 */
-	public static $isNotice  = true;
-
-	/**
 	 * 运行模式(1为web、2为控制台)
 	 */
 	public static $mode      = 1;
+
+	/**
+	 * 错误、异常处理钩子函数
+	 */
+	public static $hook		 = '';
 
 	/**
 	 * 类地图(键为类名、值为类文件路径)
@@ -110,12 +110,13 @@ class Spring
 	public static function run($mode = 1)
 	{
 		self::init();
-		self::$mode = $mode;
-		$appName    = $mode == 1 ? 'WebApplication' : 'ConsoleApplication';
-		$app = new $appName();
+		self::$mode     = $mode;
+		$appName        = $mode == 1 ? 'WebApplication' : 'ConsoleApplication';
+		$app            = new $appName();
 		$app->process();
-		$app = null;
+		$app            = null;
 		ServiceFactory::dispose();
+		self::$classMap = null;
 	}
 
 	/**
@@ -124,10 +125,16 @@ class Spring
 	 * @access	private
 	 * @return	void
 	 */
-	private static function init()
+	public static function init()
 	{
+		//设置错误、异常处理句柄
+		register_shutdown_function(array("Spring", "fatalError"));
 		set_error_handler(array("Spring", "appError"));
 		set_exception_handler(array("Spring", "appException"));
+
+		//自动加载类
+		spl_autoload_register(array('Spring', 'loader'));
+
 		ServiceFactory::$cacheDir   = CacheDir;
 		ServiceFactory::$isCached   = IsCached;
 		ServiceFactory::$configFile = LibDir.'/Config/map.config.php';
@@ -163,15 +170,14 @@ class Spring
 	{
 		if ( empty(self::$classMap) )
 		{
-			$map = array();
-			require(LibDir.'/Config/classmap.config.php');
+			$classMapA = array();
+			$classMapB = require(LibDir.'/Config/classmap.config.php');
 			if ( file_exists(ConfigDir.'/Extension/classmap.config.php') )
 			{
-				require(ConfigDir.'/Extension/classmap.config.php');
-				$map = isset($map) && is_array($map) ? $map : array();
+				$classMapA = require(ConfigDir.'/Extension/classmap.config.php');
 			}
+			self::$classMap = array_merge($classMapA, $classMapB);
 
-			self::$classMap = array_merge($classMap, $map);
 		}
 		
 		if ( isset(self::$classMap[$className]) )
@@ -183,58 +189,99 @@ class Spring
 	}
 
 	/**
-	 * 记录跟踪信息
+	 * 异常处理
 	 *
 	 * @access	public
-	 * @param	string	$msg		消息
-	 * @param	string	$category	消息分类
+	 * @param	Exception	$e	异常处理对象
 	 * @return	void
 	 */
-	public static function trace($msg, $category)
+	public static function appException($e)
 	{
+		$error             = array();
+		$error['desc']     = $e->getMessage();
+        $trace             = $e->getTrace();
+        if ( $trace[0]['function'] == 'E' )
+		{
+			$error['file'] = $trace[0]['file'];
+			$error['line'] = $trace[0]['line'];
+        }
+		else
+		{
+			$error['file'] = $e->getFile();
+			$error['line'] = $e->getLine();
+        }
+		ErrorHandle::record($e, 'error');
+        self::halt($error);
 	}
 
 	/**
-	 * 警告、错误信息
+	 * 错误处理
 	 *
 	 * @access	public
 	 * @return	void
 	 */
 	public static function appError($errno, $errstr, $errfile, $errline)
 	{
-		if ( !self::$isNotice )
+		if ( !$errno )
 		{
-			return '';
+			return ;
 		}
 
-		if ( self::$mode == 2 )
+		$errors    = array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR);
+		$e['desc'] = $errstr;
+		$e['file'] = $errfile;
+		$e['line'] = $errline;
+		if ( in_array($errno, $errors) )
 		{
-			$error  ="errno: $errno \n";
-			$error .="desc: $errstr \n";
-			$error .="file: ".basename($errfile)."\n";
-			$error .="line: $errline \n";
-			SpringException::throwException($error);
-		} 
+			ob_end_clean();
+			ErrorHandle::record($e, 'error');
+			self::halt($e);
+		}
 		else
 		{
-			$error = "错误号: $errno <br>";
-			$error .="描  述: $errstr <br>";
-			$error .= "所在文件: ".basename($errfile)."<br>";
-			$error .= "所在行数: 第 $errline 行<br>";
-			SpringException::throwException($error);
+			ErrorHandle::record($e, 'notice');
 		}
 	}
 
 	/**
-	 * 异常信息
+	 * 致命错误处理
 	 *
 	 * @access	public
 	 * @return	void
 	 */
-	public static function appException($e)
+	public static function fatalError()
 	{
-		SpringException::throwException($e->__toString());
+		$errors = array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR);
+		$error  = error_get_last();
+		if ( isset($error['type']) && in_array($error['type'], $errors) )
+		{
+			$e['desc']  = $error['message'];
+			$e['file']  = $error['file'];
+			$e['line']  = $error['line'];
+			ob_end_clean();
+			ErrorHandle::record($e, 'error');
+			self::halt($e);
+		}
+	}
+
+	/**
+	 * 异常、错误信息输出
+	 *
+	 * @access	public
+	 * @param	array	$e	异常、错误信息
+	 * @return	void
+	 */
+	public static function halt($e)
+	{		
+		//执行钩子函数
+		if ( self::$hook && function_exists(self::$hook) )
+		{
+			$function = self::$hook;
+			$function($e);
+			exit();
+		}
+		ErrorHandle::output($e);
+		exit();
 	}
 }
-spl_autoload_register(array('Spring','loader'));
 ?>

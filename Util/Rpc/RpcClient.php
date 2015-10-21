@@ -42,7 +42,7 @@ abstract class RpcClient
 		}
 		catch ( Yar_Client_Exception $e )
 		{
-			SpringException::writeLog($e->getMessage());
+			ErrorHandle::record($e->getMessage(), 'error');
 			return array();
 		}
 	}

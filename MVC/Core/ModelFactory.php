@@ -108,13 +108,13 @@ class ModelFactory
 
 		if ( $reqFile == null ) 
 		{
-			SpringException::throwException("找不到文件$this->path/$modelFile.php");
+			throw new SpringException("找不到文件$this->path/$modelFile.php");
 		}
 
 		require_once($reqFile);
 		if ( !class_exists($model) ) 
 		{
-			SpringException::throwException("文件$this->path/$modelFile.php中找不到类 $model");
+			throw new SpringException("文件$this->path/$modelFile.php中找不到类 $model");
 		}
 		
 		return new $model();
@@ -141,7 +141,7 @@ class ModelFactory
 
 		if ( !file_exists($this->path) ) 
 		{
-			SpringException::throwException('找不到目录 '.$this->path);
+			throw new SpringException('找不到目录 '.$this->path);
 		}
 
 		//遍历模型层目录下的所有子目录,查找请求的目标文件

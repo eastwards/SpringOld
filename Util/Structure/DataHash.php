@@ -47,7 +47,7 @@ class DataHash
 	{
 		 if ( !class_exists('Redis') )
 		 {
-			 SpringException::throwException('Not Support : Redis');
+			 throw new SpringException('Not Support : Redis');
 		 }
 	}
 
@@ -79,7 +79,7 @@ class DataHash
 		{
 			if ( !file_exists($this->configFile) ) 
 			{
-				SpringException::throwException("配置文件：".$this->configFile."不存在!");
+				throw new SpringException("配置文件：".$this->configFile."不存在!");
 			}
 			require($this->configFile);
 			$this->connectId = new Redis();

@@ -68,7 +68,8 @@ class DbLog
 	 */
 	public function output()
 	{
-		if ( $this->sqlLog ) {
+		if ( $this->sqlLog )
+		{
 			echo $this->sqlLog;
 			echo '<div align=center><font color=red>SQL Process: '.number_format(($this->endTime -$this->startTime), 6).'s</font></div>';
 		}
@@ -84,9 +85,11 @@ class DbLog
 	 */
 	private function write($table, $sql)
 	{
-		$cmd  = substr($sql, 0, 6);
-		file_put_contents(LogDir."/$table.$cmd.sql", "$sql\r\n", FILE_APPEND);
-		file_put_contents(LogDir."/sql.log", "$sql\r\n", FILE_APPEND);
+		if ( file_exists(LogDir.'/Sql') )
+		{
+			$logFile = 'sql-'.date("Y-m-d", time()).'.log';
+			file_put_contents(LogDir."/Sql/{$logFile}", "$sql\r\n", FILE_APPEND);
+		}
 	}
 }
 ?>

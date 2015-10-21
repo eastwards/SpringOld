@@ -28,5 +28,24 @@ abstract class AppForm extends Form
 		'float'    =>  '/^[-\+]?\d+(\.\d+)$/',
 		'english'  =>  '/^[A-Za-z]+$/',
 		);
+
+	/**
+	 * 中断并输出提示信息
+	 *
+	 * @access	public
+	 * @param   mixed	$error 提示信息
+	 * @return	void
+	 */
+	public function stop($error = 'error')
+	{
+		if ( $this->format )
+		{
+			exit(json_encode($error));
+		}
+		else
+		{
+			MessageBox::halt($error);
+		}
+	}
 }
 ?>

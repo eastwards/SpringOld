@@ -25,11 +25,11 @@ abstract class Object
 	/**
 	 * 获取组件对象
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	$objId	对象标识 
 	 * @return	object
 	 */
-	public final function com($objId = null)
+	protected function com($objId = null)
 	{
 		return Spring::getComponent($objId);
 	}
@@ -40,13 +40,13 @@ abstract class Object
 	 * @access	public
 	 * @return	object
 	 */
-	public final function getCacheObject()
+	protected function getCacheObject()
 	{
 		$cache     = Spring::getComponent($this->cacheId);
 		$className = get_class($cache);
 		if ( $className == 'stdClass' ) 
 		{
-			SpringException::throwException("该组件接口已被移除!");
+			throw new SpringException("该组件接口已被移除!");
 		}
 
 		$interface = class_implements($className);
@@ -57,7 +57,7 @@ abstract class Object
 		}
 		else
 		{
-			SpringException::throwException("类 $className 未实现 ICache 接口!");
+			throw new SpringException("类 $className 未实现 ICache 接口!");
 		}
 	}
 }

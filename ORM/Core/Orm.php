@@ -33,7 +33,7 @@ class Orm
 	{
 		if ( empty($name) )
 		{
-			SpringException::throwException('实体类名不能为空');
+			throw new SpringException("实体类名不能为空!");
 		}
 
 		if ( isset(self::$caches[$name]) && !empty(self::$caches[$name]) )
@@ -44,14 +44,14 @@ class Orm
 		$file = self::$entityDir.'/'.strtolower($name).'.api.php';
 		if ( !file_exists($file) )
 		{
-			SpringException::throwException('找不到实体类文件 '.$file);
+			throw new SpringException('找不到实体类文件 '.$file);
 		}
 
 		require_once($file);
 		$className = $name.'Api';
 		if ( !class_exists($className) ) 
 		{
-			SpringException::throwException('找不到实体类 '.$className);
+			throw new SpringException('找不到实体类 '.$className);
 		}
 		
 		self::$caches[$name] = new $className();

@@ -19,7 +19,7 @@ class ErrorAction extends Action
 	 */
 	public function index()
 	{
-		SpringException::throwException('请求的url不存在!');
+		MessageBox::halt('正在开发中...');
 	}
 }
 ?>

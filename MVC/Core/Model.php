@@ -22,9 +22,9 @@ abstract class Model extends ModelActionBase
 	protected $slice    = 0;
 
 	/**
-	 * 实体对象
+	 * 实体对象数组
 	 */
-	private   $instance = null;
+	protected $instance = array();
 
 	/**
 	 * 构造实体类对象
@@ -35,24 +35,24 @@ abstract class Model extends ModelActionBase
 	 */
 	private function createEntity($name)
 	{
-		if ( $this->instance ) {
-			return $this->instance;
+		//实体对象缓存
+		if ( !isset($this->instance[$name]) )
+		{
+			$this->instance[$name] = Orm::create($name);
+			$this->instance[$name]->debug = $this->debug;
 		}
 
-		$this->instance        = Orm::create($name);
-		$this->instance->debug = $this->debug;
-
-		return $this->instance;
+		return $this->instance[$name];
 	}
 
 	/**
-	 * 调整默认的实体类名
+	 * 更换实体
 	 *
 	 * @access	protected
 	 * @param	string		$name	实体类名
 	 * @return	void
 	 */
-	protected function select($name)
+	protected function change($name)
 	{
 		$this->entity = $name;
 	}
@@ -61,33 +61,36 @@ abstract class Model extends ModelActionBase
 	 * 开始事务
 	 *
 	 * @access	protected
+	 * @param	string		$name	实体类名
 	 * @return	bool
 	 */
-	protected function begin()
+	protected function begin($name)
 	{
-		return $this->createEntity($this->entity)->begin();
+		return $this->createEntity($name)->begin();
 	}
 
 	/**
 	 * 提交事务
 	 *
 	 * @access	protected
+	 * @param	string		$name	实体类名
 	 * @return	bool
 	 */
-	protected function commit()
+	protected function commit($name)
 	{
-		return $this->createEntity($this->entity)->commit();
+		return $this->createEntity($name)->commit();
 	}
 
 	/**
 	 * 回滚事务
 	 *
 	 * @access	protected
+	 * @param	string		$name	实体类名
 	 * @return	bool
 	 */
-	protected function rollBack()
+	protected function rollBack($name)
 	{
-		return $this->createEntity($this->entity)->rollBack();
+		return $this->createEntity($name)->rollBack();
 	}
 
 	/**
@@ -220,6 +223,21 @@ abstract class Model extends ModelActionBase
 	 */
 	public function init()
 	{
+	}
+
+	/**
+	 * 释放资源
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function __destruct()
+	{
+		$this->entity   = null;
+		$this->instance = null;
+		$this->slice    = null;
+		$this->object   = null;
+		$this->debug    = null;
 	}
 }
 ?>

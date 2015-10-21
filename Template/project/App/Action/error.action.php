@@ -21,7 +21,7 @@ class ErrorAction extends Action
 	public function index()
 	{
 		//根据应用需要自行定义
-		SpringException::throwException('发生404啦,请求的地址不存在!');
+		throw new SpringException('发生404啦,请求的地址不存在!');
 	}
 }
 ?>

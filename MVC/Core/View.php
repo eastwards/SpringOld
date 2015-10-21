@@ -71,7 +71,7 @@ class View
 			$file = $this->tplDir .'/'.$file;
 			if ( !file_exists($file) ) 
 			{
-				SpringException::throwException("模板文件: $file 不存在!");
+				throw new SpringException("模板文件: $file 不存在!");
 			}
 
 			if ( is_array($this->tplVar) && !empty($this->tplVar) ) 
@@ -96,7 +96,7 @@ class View
 			$file = $this->tplDir .'/'.$file;
 			if ( !file_exists($file) ) 
 			{
-				SpringException::throwException("模板文件: $file 不存在!");
+				throw new SpringException("模板文件: $file 不存在!");
 			}
 
 			if ( is_array($this->tplVar) && !empty($this->tplVar) ) 
@@ -121,7 +121,7 @@ class View
 			$file = $this->tplDir .'/'.$file;
 			if ( !file_exists($file) ) 
 			{
-				SpringException::throwException("模板文件: $file 不存在!");
+				throw new SpringException("模板文件: $file 不存在!");
 			}
 
 			if ( is_array($this->tplVar) && !empty($this->tplVar) ) 

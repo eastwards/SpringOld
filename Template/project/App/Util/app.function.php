@@ -120,7 +120,7 @@ function getPageBar($pager, $script = true)
  */
 function halt($msg)
 {
-	SpringException::throwException($msg);
+	throw new SpringException($msg);
 }
 
 /**

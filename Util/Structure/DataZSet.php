@@ -47,7 +47,7 @@ class DataZSet
 	{
 		 if ( !class_exists('Redis') )
 		 {
-			 SpringException::throwException('Not Support : Redis');
+			 throw new SpringException('Not Support : Redis');
 		 }
 	}
 
@@ -60,7 +60,6 @@ class DataZSet
 	public function __destruct()
 	{
 		$this->close();
-		$this->db         = null;
 		$this->configFile = null;
 		$this->name	      = null;
 		$this->connectId  = null;
@@ -79,12 +78,12 @@ class DataZSet
 		{
 			if ( !file_exists($this->configFile) ) 
 			{
-				SpringException::throwException("配置文件：".$this->configFile."不存在!");
+				throw new SpringException("配置文件：".$this->configFile."不存在!");
 			}
 			require($this->configFile);
 			$this->connectId = new Redis();
 			$this->connectId->connect($host, $port);
-			$this->connectId->select($this->db);
+			$this->connectId->select($db);
 		}
 	}
 

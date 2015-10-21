@@ -50,7 +50,12 @@ class FileCache implements ICache
 	 */
 	public function set($key, $value, $expire = 0, $encoding = 0)
 	{
-		$key  = md5(serialize($key));
+		if ( empty($key) || !is_string($key) ) 
+		{
+			return false;
+		}
+
+		$key  = trim($key);
 		$file = $this->path.'/'.$key.'.php';
 		
 		return $this->createFile('var', $value, $file);
@@ -66,17 +71,20 @@ class FileCache implements ICache
 	 */
 	public function get($key, $encoding = 0)
 	{
-		$key  = md5(serialize($key));
+		if ( empty($key) || !is_string($key) ) 
+		{
+			return '';
+		}
+
+		$key  = trim($key);
 		$file = $this->path.'/'.$key.'.php';
 		
 		if ( !file_exists($file) )
 		{
-			return null;
+			return '';
 		}
-		
-		require($file);
 
-		return $var;
+		return require($file);
 	}
 
 	/**
@@ -85,15 +93,21 @@ class FileCache implements ICache
 	 * @access	public
 	 * @param	mixed	$key		键
 	 * @param	int		$encoding	编码方式(0-3)
-	 * @return	mixed
+	 * @return	bool
 	 */
 	public function remove($key, $encoding = 0)
 	{
-		$key  = md5(serialize($key));
+		if ( empty($key) || !is_string($key) ) 
+		{
+			return false;
+		}
+
+		$key  = trim($key);
 		$file = $this->path.'/'.$key.'.php';
 		if ( file_exists($file) )
 		{
 			@unlink($file);
+			return true;
 		}
 		return false;
 	}
@@ -122,6 +136,26 @@ class FileCache implements ICache
 	}
 
 	/**
+	 * 检查缓存键是否存在
+	 *
+	 * @access	public
+	 * @param	string	$key	键
+	 * @return	bool
+	 */
+	public function exist($key)
+	{
+		if ( empty($key) || !is_string($key) ) 
+		{
+			return false;
+		}
+
+		$key  = trim($key);
+		$file = $this->path.'/'.$key.'.php';
+
+		return file_exists($file);
+	}
+
+	/**
 	 * 删除数据
 	 *
 	 * @access	private
@@ -132,7 +166,7 @@ class FileCache implements ICache
 	 */
 	private function createFile($name, $value, $file)
 	{
-		return @file_put_contents($file, '<?$'.$name.'='.var_export($value, true).';?>');
+		return @file_put_contents($file, "<?\r\nreturn ".var_export($value, true).";\r\n?>");
 	}
 }
 ?>

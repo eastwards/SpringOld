@@ -26,8 +26,8 @@ abstract class Application
 
 		//解析URL参数,获取请求信息
 		$dispatcher->parseReq();
-		$module            = $dispatcher->getModule();
-		$action            = $dispatcher->getAction();
+		$module = $dispatcher->getModule();
+		$action = $dispatcher->getAction();
 		
 		//呼叫控制器执行操作
 		$module->call($action);

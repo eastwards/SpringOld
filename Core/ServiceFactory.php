@@ -25,14 +25,14 @@ class ServiceFactory
 	 */
 	public static function dispose()
 	{
-		foreach ( ServiceFactory::$table as $k => $v ) 
+		foreach ( self::$table as $k => $v ) 
 		{
-			ServiceFactory::$table[$k] = null;
+			self::$table[$k] = null;
 		}
-		ServiceFactory::$table      = null;
-		ServiceFactory::$isCached   = null;
-		ServiceFactory::$cacheDir   = null;
-		ServiceFactory::$configFile = null;
+		self::$table      = null;
+		self::$isCached   = null;
+		self::$cacheDir   = null;
+		self::$configFile = null;
 	}
 
 	/**
@@ -46,19 +46,19 @@ class ServiceFactory
 	{
 		if ( empty($objId) || !is_string($objId) ) 
 		{
-			SpringException::throwException("objId参数错误!");
+			throw new SpringException("objId参数错误!");
 		}
 
-		if ( isset(ServiceFactory::$table[$objId]) ) 
+		if ( isset(self::$table[$objId]) ) 
 		{
-			return ServiceFactory::$table[$objId];  
+			return self::$table[$objId];  
 		}
 
-		$config = ServiceFactory::getConfiguration($objId);
-		$object = $config === false ? new stdClass() : ServiceFactory::create($config);
+		$config = self::getConfiguration($objId);
+		$object = $config === false ? new stdClass() : self::create($config);
 		if ( !is_object($object) )
 		{
-			SpringException::throwException("配置参数: $objId 构造对象失败!");
+			throw new SpringException("配置参数: $objId 构造对象失败!");
 		}
 		
 		return $object;
@@ -75,7 +75,7 @@ class ServiceFactory
 	{
 		if ( !file_exists($config['source']) )
 		{
-			SpringException::throwException($config['source']."文件不存在!");
+			throw new SpringException($config['source']."文件不存在!");
 		}
 		
 		//文件包含(一个或多个)
@@ -93,7 +93,7 @@ class ServiceFactory
 		require_once($config['source']);
 		if ( !class_exists($config['className']) ) 
 		{
-			SpringException::throwException("未定义的类 $config[className]");
+			throw new SpringException("文件 $config[source] 中未定义类 $config[className]");
 		}
 
 		$object = new $config['className']();
@@ -124,8 +124,8 @@ class ServiceFactory
 				if ( $key && $val )
 				{
 					//递规构造对象
-					$object->$key = ServiceFactory::getObject($val);
-					ServiceFactory::registry($val, $object->$key);
+					$object->$key = self::getObject($val);
+					self::registry($val, $object->$key);
 				}
 			}
 		}
@@ -139,8 +139,8 @@ class ServiceFactory
 				{
 					continue;
 				}
-				$hook = ServiceFactory::getObject($val);
-				ServiceFactory::registry($val, $hook);
+				$hook = self::getObject($val);
+				self::registry($val, $hook);
 				//执行钩子代码
 				if ( is_object($hook) && method_exists($hook, 'work') )
 				{
@@ -150,7 +150,7 @@ class ServiceFactory
 				$hook = null;
 			}
 		}
-		ServiceFactory::registry($config['id'], $object);
+		self::registry($config['id'], $object);
 		
 		return $object; 
 	}
@@ -165,7 +165,7 @@ class ServiceFactory
 	 */
 	private static function registry($objId, $object)
 	{
-		ServiceFactory::$table[$objId] = $object;
+		self::$table[$objId] = $object;
 	}
 
 	/**
@@ -177,8 +177,8 @@ class ServiceFactory
 	 */
 	private static function getConfiguration($objId)
 	{
-		$bool   = ServiceFactory::$isCached && ServiceFactory::$cacheDir && file_exists(ServiceFactory::$cacheDir);
-		$config = $bool ? ServiceFactory::getCache($objId) : ServiceFactory::find($objId);
+		$bool   = self::$isCached && self::$cacheDir && file_exists(self::$cacheDir);
+		$config = $bool ? self::getCache($objId) : self::find($objId);
 
 		if ( isset($config['ignore']) && $config['ignore'] && !file_exists($config['source']) ) 
 		{
@@ -186,8 +186,8 @@ class ServiceFactory
 		}
 
 		if ( !file_exists($config['source']) ) 
-		{
-			SpringException::throwException("$config[className] 对象所在类文件 $config[source] 不存在!");
+		{	
+			throw new SpringException("$config[className] 对象所在类文件 $config[source] 不存在!");
 		}
 
 		if ( isset($config['import']) && is_array($config['import']) )
@@ -196,7 +196,7 @@ class ServiceFactory
 			{
 				if ( $file && !file_exists($file) )
 				{
-					SpringException::throwException("$config[className] 对象所依赖的文件 $file 不存在!");
+					throw new SpringException("$config[className] 对象所依赖的文件 $file 不存在!");
 				}
 			}
 		}
@@ -212,14 +212,14 @@ class ServiceFactory
 	 */
 	private static function getCache($objId)
 	{
-		if ( !file_exists(ServiceFactory::$cacheDir.'/'.$objId.'.php') )
+		if ( !file_exists(self::$cacheDir.'/'.$objId.'.php') )
 		{
-			$config = ServiceFactory::find($objId);
-			ServiceFactory::cache($config);
+			$config = self::find($objId);
+			self::cache($config);
 		}
 		else
 		{
-			require(ServiceFactory::$cacheDir.'/'.$objId.'.php');
+			require(self::$cacheDir.'/'.$objId.'.php');
 		}
 		return $config;
 	}
@@ -233,12 +233,12 @@ class ServiceFactory
 	 */
 	private static function find($objId)
 	{
-		if ( !file_exists(ServiceFactory::$configFile) ) 
+		if ( !file_exists(self::$configFile) ) 
 		{
-			SpringException::throwException("级联配置文件: ServiceFactory::configFile 不存在!");
+			throw new SpringException("级联配置文件: ".self::$configFile." 不存在!");
 		}
 
-		require(ServiceFactory::$configFile);
+		require(self::$configFile);
 		$scanedFile = null;
 		foreach ( $source as $objFile )
 		{
@@ -262,8 +262,8 @@ class ServiceFactory
 			}
 			$scanedFile = $scanedFile."\t".$objFile['source'];
 		}
-		ServiceFactory::remove();
-		SpringException::throwException("对象标识ID: $objId 在配置文件 $scanedFile 中没有找到!");
+		self::remove();
+		throw new SpringException("对象标识ID: $objId 在配置文件 $scanedFile 中没有找到!");
 	}
 
 	/**
@@ -322,7 +322,7 @@ class ServiceFactory
 		}
 		$str  = str_replace("\\","/", $str);
 		$str .= "?>\r\n";
-		$file = ServiceFactory::$cacheDir.'/'.$config['id'].'.php';
+		$file = self::$cacheDir.'/'.$config['id'].'.php';
 		file_put_contents($file, $str);
 	}
 
@@ -333,12 +333,12 @@ class ServiceFactory
 	 */
 	private static function remove()
 	{
-		if ( file_exists(ServiceFactory::$cacheDir) )
+		if ( file_exists(self::$cacheDir) )
 		{
-			$handle = opendir(ServiceFactory::$cacheDir);
+			$handle = opendir(self::$cacheDir);
 			while ( $file = readdir($handle) )
 			{
-				$file = ServiceFactory::$cacheDir . DIRECTORY_SEPARATOR . $file;
+				$file = self::$cacheDir . DIRECTORY_SEPARATOR . $file;
 				if ( !is_dir($file) && $file != '.' && $file != '..' ) 
 				{
 					@unlink($file);

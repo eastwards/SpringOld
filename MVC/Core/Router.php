@@ -54,8 +54,9 @@ class Router implements IDispatcher
 		$uri   = str_replace('/?', '/', ltrim(Uri, "/"));
 		$uri   = explode('/', $uri);
 		$count = count($uri);
-		if ( $count < 2 ) {
-			SpringException::throwException('命令行参数错误');
+		if ( $count < 2 )
+		{
+			throw new SpringException("命令行参数错误!");
 		}
 		
 		$mod          = $uri[0];
@@ -75,19 +76,19 @@ class Router implements IDispatcher
 		
 		if ( empty($file) )
 		{
-			SpringException::throwException("控制器 $mod 未找到!");
+			throw new SpringException("控制器 $mod 未找到!");
 		}
 		
 		require($file);
 		if ( !class_exists($mod) ) 
 		{
-			SpringException::throwException("控制器 $mod 未找到!");
+			throw new SpringException("控制器 $mod 未找到!");
 		}
 		
 		$this->module = new $mod();
 		if ( !method_exists($this->module, $this->action) )
 		{
-			SpringException::throwException("未定义的操作: $this->action");
+			throw new SpringException("未定义的操作: $this->action");
 		}
 	}
 

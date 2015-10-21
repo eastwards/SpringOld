@@ -51,7 +51,7 @@ class SpringMongo implements IDataSource
 	{
 		if ( !class_exists('mongo') )
 		{ 
-			SpringException::throwException('Not Support : mongo');
+			throw new SpringException('Not Support : mongo');
 		}
 	}
 	
@@ -83,7 +83,7 @@ class SpringMongo implements IDataSource
 		{
 			if ( !file_exists($this->configFile) ) 
 			{
-				SpringException::throwException("数据库配置文件：".$this->configFile."不存在!");
+				throw new SpringException("数据库配置文件：".$this->configFile."不存在!");
 			}
 			require($this->configFile);
 			
@@ -96,7 +96,7 @@ class SpringMongo implements IDataSource
 			catch ( MongoConnectionException $e )
 			{
 				$this->errorMsg = $e->getMessage();
-				SpringException::writeLog($this->errorMsg);
+				ErrorHandle::record($this->errorMsg);
 			}
 		}		
 	}
@@ -340,7 +340,7 @@ class SpringMongo implements IDataSource
 		{
 			$result = 0;
 			$this->errorMsg = $e->getMessage();
-			SpringException::writeLog($this->errorMsg);
+			ErrorHandle::record($this->errorMsg);
 		}
 		return $result;
 	}
@@ -380,7 +380,7 @@ class SpringMongo implements IDataSource
 		{
 			$bool = false;
 			$this->errorMsg = $e->getMessage();
-			SpringException::writeLog($this->errorMsg);
+			ErrorHandle::record($this->errorMsg);
 		}
 		return $bool;
 	}
@@ -418,7 +418,7 @@ class SpringMongo implements IDataSource
 		{
 			$bool = false;
 			$this->errorMsg = $e->getMessage();
-			SpringException::writeLog($this->errorMsg);
+			ErrorHandle::record($this->errorMsg);
 		}
 		return $bool;
 	}

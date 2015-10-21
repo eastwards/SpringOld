@@ -113,7 +113,7 @@ class Dispatcher implements IDispatcher
 		
 		if ( empty($file) )
 		{
-			SpringException::writeLog("控制器 $mod 未找到!");
+			ErrorHandle::record("控制器 $mod 未找到!", '404');
 			$this->notFound();
 			return '';
 		}
@@ -121,7 +121,7 @@ class Dispatcher implements IDispatcher
 		require($file);
 		if ( !class_exists($mod) ) 
 		{
-			SpringException::writeLog("控制器 $mod 未找到!");
+			ErrorHandle::record("控制器 $mod 未找到!", '404');
 			$this->notFound();
 		}
 		else
@@ -129,7 +129,7 @@ class Dispatcher implements IDispatcher
 			$this->module = new $mod();
 			if ( !method_exists($this->module, $this->action) )
 			{
-				SpringException::writeLog("未定义的操作: $this->action");
+				ErrorHandle::record("未定义的操作: $this->action", '404');
 				$this->notFound();
 			}
 		}

@@ -40,15 +40,6 @@ $configs[] = array(
 	'upType'  => 'doc|docx|rar|zip|txt|xls|xlsx|jpg|gif|png',
 ));
 
-//参数验证
-$configs[] = array(
-'id'        => 'para',
-'enable'    => true,
-'ignore'    => true,
-'source'    => LibDir.'/MVC/Util/Parameter.php',
-'className' => 'Parameter'
-);
-
 //数据分页
 $configs[] = array(
 'id'        => 'pager',

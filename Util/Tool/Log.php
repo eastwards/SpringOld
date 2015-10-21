@@ -29,18 +29,10 @@ class Log
 		$logDir = $dir ? $dir : LogDir;
 		if ( !file_exists($logDir) )
 		{
-			@mkdir($logDir);
-			@chmod($logDir, 0777);
+			return ;
 		}
 
-		if ( is_array($content) )
-		{
-			$content = var_export($content, true);
-		} 
-		else
-		{
-			$content = "【".date("Y-m-d H:i:s", time())."】\t\t".$content."\r\n";
-		}
+		is_array($content) && $content = var_export($content, true);
 		file_put_contents($logDir.'/'.$file, $content, FILE_APPEND);
 	}
 }

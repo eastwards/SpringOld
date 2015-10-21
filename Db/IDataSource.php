@@ -105,16 +105,18 @@ interface IDataSource
 	 * 提交事务
 	 *
 	 * @access	public
+	 * @param	string	$tableKey	数据表标识
 	 * @return	bool
 	 */
-	public function commit();
+	public function commit($tableKey);
 
 	/**
 	 * 回滚事务
 	 *
 	 * @access	public
+	 * @param	string	$tableKey	数据表标识
 	 * @return	bool
 	 */
-	public function rollBack();
+	public function rollBack($tableKey);
 }
 ?>
