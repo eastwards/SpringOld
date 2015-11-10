@@ -177,15 +177,20 @@ class SpringMysql implements IDataSource
 	 */
 	public function find($tableKey, $rule)
 	{
-		$table = $this->getTable($tableKey, $rule['slice'], 0);
-		$where = $this->where($rule);
-		$limit = isset($rule['limit']) ? intval($rule['limit']) : $this->limit;
-		$limit = $limit <= 0 ? $this->limit : $limit; 
-		$col   = isset($rule['col']) && is_array($rule['col']) && !empty($rule['col']) 
-			     ? implode(",", $this->parseKey($rule['col']) ) 
-			     : '*'; 
-		$sql   = "select $col from $table where $where limit $limit";
+		$table  = $this->getTable($tableKey, $rule['slice'], 0);
+		$where  = $this->where($rule);
+		$limit  = isset($rule['limit']) ? intval($rule['limit']) : $this->limit;
+		$offset = $limit <= 0 ? ' limit '.$this->limit : ' limit '.$limit; 
+		
+		if ( isset($rule['index']) && is_array($rule['index']) && count($rule['index']) == 2 ) {
+			$offset = ' limit '. $rule['index'][0].','.$rule['index'][1];
+		}
 
+		$col = isset($rule['col']) && is_array($rule['col']) && !empty($rule['col']) 
+			   ? implode(",", $this->parseKey($rule['col']) ) 
+			   : '*'; 
+		$sql = "select $col from $table where $where $offset";
+		
 		return $this->getRows($sql);
 	}
 
@@ -525,7 +530,7 @@ class SpringMysql implements IDataSource
 			$where .= $where ? ($kv ? " and $scope " : "") : $scope;
 		}
 
-		//原始条件（下个版本会废弃，建议使用 raw）
+		//原始条件（后续版本会废弃，建议使用 raw）
 		if ( isset($rule['other']) && is_string($rule['other']) && !empty($rule['other']) ) {
 			$where .= $where ? " and " . $rule['other'] : $rule['other'];
 		}
@@ -539,7 +544,26 @@ class SpringMysql implements IDataSource
 			foreach ( $rule['ft'] as $key => $value ) {
 				$kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
 			}
-			$where = "( " . implode(' and ', $kv) . " )";
+			$where .= "( " . implode(' and ', $kv) . " )";
+		}
+
+		if ( isset($rule['lLike']) && is_array($rule['lLike']) && !empty($rule['lLike']) ) {
+			$kv = array();
+			foreach ($rule['lLike'] as $key => $value) {
+				if ( is_array($value) ) {
+					foreach ($value as $v) {
+						if ( trim($v) != '' ) $kv[] = $this->parseKey($key).' like \''. $v . '%\'';
+					}
+				} else {
+					if ( trim($value) != '' ) {
+						$kv[] = $this->parseKey($key).' like \''. $value . '%\'';
+					}
+				}
+			}
+			if ( !empty($kv) ) {
+				$like = '( ' . implode(' and ', $kv) . ')';
+				$where .= $where ? " and $like " : $like;
+			}
 		}
 
 		if ( isset($rule['like']) && is_array($rule['like']) && !empty($rule['like']) ) {
@@ -552,6 +576,25 @@ class SpringMysql implements IDataSource
 				} else {
 					if ( trim($value) != '' ) {
 						$kv[] = $this->parseKey($key).' like \'%'. $value . '%\'';
+					}
+				}
+			}
+			if ( !empty($kv) ) {
+				$like = '( ' . implode(' and ', $kv) . ')';
+				$where .= $where ? " and $like " : $like;
+			}
+		}
+
+		if ( isset($rule['rLike']) && is_array($rule['rLike']) && !empty($rule['rLike']) ) {
+			$kv = array();
+			foreach ($rule['rLike'] as $key => $value) {
+				if ( is_array($value) ) {
+					foreach ($value as $v) {
+						if ( trim($v) != '' ) $kv[] = $this->parseKey($key).' like \'%'. $v . '\'';
+					}
+				} else {
+					if ( trim($value) != '' ) {
+						$kv[] = $this->parseKey($key).' like \'%'. $value . '\'';
 					}
 				}
 			}

@@ -134,6 +134,11 @@ abstract class Entity extends Object implements IEntity
 	public function find($rule)
 	{
 		!isset($rule['limit']) && $rule['limit'] = 1;
+		if ( isset($rule['index']) )
+		{
+			unset($rule['limit']);
+		}
+		
 		$this->createDbObject();
 		$rule['slice'] = $this->slice;
 		$method        = $rule['limit'] == 1 ? 'findOne' : 'find';
