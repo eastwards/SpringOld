@@ -544,7 +544,7 @@ class SpringMysql implements IDataSource
 			foreach ( $rule['ft'] as $key => $value ) {
 				$kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
 			}
-			$where .= "( " . implode(' and ', $kv) . " )";
+			$where .= " and ( " . implode(' and ', $kv) . " )";
 		}
 
 		if ( isset($rule['lLike']) && is_array($rule['lLike']) && !empty($rule['lLike']) ) {

@@ -536,7 +536,7 @@ class SpringDbPdo implements IDataSource
 			foreach ( $rule['ft'] as $key => $value ) {
 				$kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
 			}
-			$where = "( " . implode(' and ', $kv) . " )";
+			$where .= "( " . implode(' and ', $kv) . " )";
 		}
 
 		if ( isset($rule['like']) && is_array($rule['like']) && !empty($rule['like']) ) {
