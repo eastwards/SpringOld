@@ -535,16 +535,17 @@ class SpringMysql implements IDataSource
 			$where .= $where ? " and " . $rule['other'] : $rule['other'];
 		}
 
-		//原始条件
-		if ( isset($rule['raw']) && is_string($rule['raw']) && !empty($rule['raw']) ) {
-			$where .= $where ? " and " . $rule['raw'] : $rule['raw'];
-		}
-
 		if ( isset($rule['ft']) && is_array($rule['ft']) && !empty($rule['ft']) ) {
+			$kv = array();
 			foreach ( $rule['ft'] as $key => $value ) {
 				$kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
 			}
-			$where .= " and ( " . implode(' and ', $kv) . " )";
+			$where .= $where ? " and ( " . implode(' and ', $kv) . " )" : " ( " . implode(' and ', $kv) . " )";
+		}
+		
+		//原始条件
+		if ( isset($rule['raw']) && is_string($rule['raw']) && !empty($rule['raw']) ) {
+			$where .= $where ? " and " . $rule['raw'] : $rule['raw'];
 		}
 
 		if ( isset($rule['lLike']) && is_array($rule['lLike']) && !empty($rule['lLike']) ) {

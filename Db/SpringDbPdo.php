@@ -528,15 +528,16 @@ class SpringDbPdo implements IDataSource
 			$where .= $where ? " and ( " . implode(' or ', $values) . " )" : "( ".implode(' or ', $values)." )";
 		}
 
-		if ( isset($rule['other']) && is_string($rule['other']) && !empty($rule['other']) ) {
-			$where .= $where ? " and " . $rule['other'] : $rule['other'];
-		}
-
 		if ( isset($rule['ft']) && is_array($rule['ft']) && !empty($rule['ft']) ) {
-			foreach ( $rule['ft'] as $key => $value ) {
+			$kv = array();
+                        foreach ( $rule['ft'] as $key => $value ) {
 				$kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
 			}
-			$where .= "( " . implode(' and ', $kv) . " )";
+			$where .= $where ? " and ( " . implode(' and ', $kv) . " )" : "( " . implode(' and ', $kv) . " )";
+		}
+
+		if ( isset($rule['other']) && is_string($rule['other']) && !empty($rule['other']) ) {
+			$where .= $where ? " and " . $rule['other'] : $rule['other'];
 		}
 
 		if ( isset($rule['like']) && is_array($rule['like']) && !empty($rule['like']) ) {
