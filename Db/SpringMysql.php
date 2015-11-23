@@ -538,7 +538,16 @@ class SpringMysql implements IDataSource
 		if ( isset($rule['ft']) && is_array($rule['ft']) && !empty($rule['ft']) ) {
 			$kv = array();
 			foreach ( $rule['ft'] as $key => $value ) {
-				$kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
+				if ( is_array($value) ){
+					$_kv 		= array();
+					$_prifix 	= "MATCH(%s) AGAINST ('%s')";
+					foreach ($value as $k => $v) {
+						$_kv[] = sprintf($_prifix, $this->parseKey($key), $v);
+					}
+					$kv[] = " ".implode(' and ', $_kv)." ";
+				}else{
+					$kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
+				}
 			}
 			$where .= $where ? " and ( " . implode(' and ', $kv) . " )" : " ( " . implode(' and ', $kv) . " )";
 		}
