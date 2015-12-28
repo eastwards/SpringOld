@@ -23,11 +23,6 @@ class SphinxApi extends Entity
 	protected $field  = array();
 
 	/**
-	 * 是否开启sphinx查询缓存
-	 */
-	protected $qc     = false;
-
-	/**
 	 * 获取多条数据
 	 *
 	 * @access	public
@@ -36,40 +31,10 @@ class SphinxApi extends Entity
 	 */
 	public function find($rule)
 	{
-		if ( $this->qc )
-		{
-			$key  = md5(serialize($rule));
-			$data = $this->com('mem')->get($key);
-			if ( !empty($data) )
-			{
-				return $data;
-			}
-		}
-
 		$rule['pk']     = $this->pk;
 		$rule['isPage'] = 0;
-		$list           = array();
-		$result         = $this->com('sphinx')->find($this->index, $rule);
-		$rule['isFind'] = isset($rule['isFind']) ? $rule['isFind'] : false;
 
-		if ( $rule['isFind'] ) 
-		{
-			foreach ( $result as $row )
-			{
-				$item = $this->findOne($row['id']);
-				if ( !empty($item) )
-				{
-					$list[] = $item;
-				}
-			}
-		}
-
-		!$rule['isFind'] && $list = $result;
-		
-		$this->qc && $this->com('mem')->set($key, $list, 60);
-		$rule = $result = null;
-		
-		return $list;
+		return $this->com('sphinx')->find($this->index, $rule);
 	}
 
 	/**
@@ -80,44 +45,11 @@ class SphinxApi extends Entity
 	 * @return	array
 	 */
 	public function findAll($rule)
-	{
-		if ( $this->qc )
-		{
-			$key  = md5(serialize($rule).$_SERVER['REQUEST_URI']);
-			$data = $this->com('mem')->get($key);
-			if ( !empty($data) )
-			{
-				return $data;
-			}
-		}
-		
+	{		
 		$rule['pk']     = $this->pk;
 		$rule['isPage'] = 1;
-		$list           = array();
-		$result         = $this->com('sphinx')->find($this->index, $rule);
-		
-		if ( $rule['isFind'] )
-		{
-			foreach ( $result['rows'] as $row )
-			{
-				$item = $this->findOne($row['id']);
-				if ( !empty($item) )
-				{
-					$list[] = $item;
-				}
-			}
-		}
 
-		!$rule['isFind'] && $list = $result['rows'];
-
-		$data = array(
-			'rows'  => $list,
-			'total' => $result['total'],
-			);
-		$this->qc && $this->com('mem')->set($key, $data, 60);
-		$rule = $result = $list = null;
-		
-		return $data;
+		return $this->com('sphinx')->findAll($this->index, $rule);
 	}
 
 	/**
