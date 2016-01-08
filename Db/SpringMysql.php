@@ -452,19 +452,19 @@ class SpringMysql implements IDataSource
 		$table       = $this->tbl[$key]['name'];
 		$this->table = $slice ? $table.intval($slice) : $table;
 
-		if ( $master )
-		{
+		//if ( $master )
+		//{
 			$this->configFile = $config[0];
 			$this->dbId       = $this->tbl[$key]['dbId'];
-		}
-		else
-		{
-			if ( !$this->transaction )
-			{
-				$this->configFile = isset($config[1]) ? $config[1] : $config[0];
-				$this->dbId       = 'slave_'.$this->tbl[$key]['dbId'];
-			}
-		}
+		//}
+		//else
+		//{
+		//	if ( !$this->transaction )
+		//	{
+		//		$this->configFile = isset($config[1]) ? $config[1] : $config[0];
+		//		$this->dbId       = 'slave_'.$this->tbl[$key]['dbId'];
+		//	}
+		//}
 		
 		return $this->table;
 	}
