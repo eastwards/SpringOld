@@ -452,20 +452,9 @@ class SpringMysql implements IDataSource
 		$table       = $this->tbl[$key]['name'];
 		$this->table = $slice ? $table.intval($slice) : $table;
 
-		//if ( $master )
-		//{
-			$this->configFile = $config[0];
-			$this->dbId       = $this->tbl[$key]['dbId'];
-		//}
-		//else
-		//{
-		//	if ( !$this->transaction )
-		//	{
-		//		$this->configFile = isset($config[1]) ? $config[1] : $config[0];
-		//		$this->dbId       = 'slave_'.$this->tbl[$key]['dbId'];
-		//	}
-		//}
-		
+		$this->configFile = $config[0];
+	    $this->dbId       = $this->tbl[$key]['dbId'];
+
 		return $this->table;
 	}
 	
@@ -543,19 +532,10 @@ class SpringMysql implements IDataSource
 		if ( isset($rule['ft']) && is_array($rule['ft']) && !empty($rule['ft']) ) {
 			$kv = array();
 			foreach ( $rule['ft'] as $key => $value ) {
-				if ( is_array($value) ) {
-					foreach ( $value as $v ) {
-						$v && $kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$v')";
-					}
-				} else {
-					$value && $kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
-				}
+				$kv[] = "MATCH({$this->parseKey($key)}) AGAINST ('$value')";
 			}
-
-			if ( $kv ) {
-				$ft = "( " . implode(' and ', $kv) . " )";
-				$where .= $where ? " and ".$ft : $ft;
-			}
+			$ft = "( " . implode(' and ', $kv) . " )";
+			$where .= $where ? " and ".$ft : $ft;
 		}
 
 		if ( isset($rule['lLike']) && is_array($rule['lLike']) && !empty($rule['lLike']) ) {

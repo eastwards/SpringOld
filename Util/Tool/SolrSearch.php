@@ -129,11 +129,17 @@ class SolrSearch
 	{
 		$this->connect($collection);
 		$this->parse($rule);
+		$this->fq && $this->solrQuery->setQuery(implode(' AND ', $this->fq));
 		$query = $this->solrQuery->getQuery();
-		$this->solrClient->deleteByQuery($query);
-		$this->solrClient->commit();
+		if ( $query ) 
+		{
+			$this->solrClient->deleteByQuery($query);
+			$this->solrClient->commit();
 
-		return true;
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

@@ -23,6 +23,7 @@ return array(
 	'Form'			     => LibDir.'/MVC/Util/Form.php',
 	'FileSearcher'       => LibDir.'/MVC/Util/FileSearcher.php',
 	'DbQuery'			 => LibDir.'/Db/DbQuery.php',
+	'DataPage'           => LibDir.'/Util/Tool/DataPage.php',
 	'Encrypt'            => LibDir.'/Util/Tool/Encrypt.php',
 	'IO'                 => LibDir.'/Util/Tool/IO.php',
 	'Log'                => LibDir.'/Util/Tool/Log.php',

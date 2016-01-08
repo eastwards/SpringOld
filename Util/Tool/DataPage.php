@@ -1,7 +1,7 @@
 <?
 /**
  +------------------------------------------------------------------------------
- * Spring框架 数组分页
+ * Spring框架 二维数组分页
  +------------------------------------------------------------------------------
  * @mobile	13183857698
  * @qq		78252859
@@ -12,57 +12,34 @@
 class DataPage
 {
 	/**
-	 * 分页对象
-	 */
-	public  $pager = null;
-
-	/**
-	 * 地址栏参数
-	 */
-	public $input  = array();
-
-
-	/**
-	 * 二维数组排序、分页
+	 * 二维数组分页
 	 *
 	 * @param  array	$rule	规则
 	 * @access public
 	 * @return array
 	 */
-	public function get($rule)
+	public static function get($rule)
 	{
-		if ( !isset($rule['data']) || !is_array($rule['data']) || empty($rule['data']) ) 
+		if ( !isset($rule['list']) || !is_array($rule['list']) || empty($rule['list']) ) 
 		{
-			return array();
+			return array(
+				'rows'  => array(),
+				'total' => 0,
+			);
 		}
 
-		if ( !is_object($this->pager) ) 
-		{
-			return array();
-		}
+		$limit  = isset($rule['limit']) ? intval($rule['limit']) : 20;
+		$limit  = $limit <= 0 ? 20 : $limit; 
+		$page   = isset($rule['page']) ? intval($rule['page']) : 1;
+		$page   = $page <= 0 ? 1 : $page;
+		$page   = $page > 1000 ? 1 : $page;
+		$offset = ($page-1)* $limit;
+		$offset = ($offset < 0) ? 0 : $offset;
 
-		if ( isset($rule['order']) && is_array($rule['order']) && !empty($rule['order']) )
-		{
-			$field = key($rule['order']);
-			$rank  = $rule['order'][$field] == 'asc' ? SORT_ASC : SORT_DESC;
-
-			foreach ( $rule['data'] as $key => $row )
-			{
-				$order[$key]  = $row[$field];
-			}	
-			array_multisort($order, $rank,  $rule['data']);
-		}
-
-		$urlPage            = isset($this->input['page']) ? $this->input['page']  : 1;
-		$page               = isset($rule['page']) ? $rule['page']  : $urlPage;
-		$this->pager->page  = $page;
-		$this->pager->input = $this->input;
-		$rows               = isset($rule['limit']) ? $rule['limit'] : 20;
-		$total              = count($rule['data']);
-		$data['record']	    = array_slice($rule['data'], ($page - 1) * $rows, $rows);
-		$data['pageBar']    = $this->pager->get($total, $rows);		
-
-		return $data;
+		return array(
+			'rows'  => array_slice($rule['list'], $offset, $limit),
+			'total' => count($rule['list']),
+			);
 	}
 }
 ?>
