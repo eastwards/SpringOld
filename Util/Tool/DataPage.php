@@ -18,7 +18,7 @@ class DataPage
 	 * @access public
 	 * @return array
 	 */
-	public static function get($rule)
+	public static function getPageRows($rule)
 	{
 		if ( !isset($rule['list']) || !is_array($rule['list']) || empty($rule['list']) ) 
 		{
