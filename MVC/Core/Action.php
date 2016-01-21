@@ -79,7 +79,7 @@ abstract class Action extends ModelActionBase
 	 */
 	protected function display($file = null)
 	{
-		if ( in_array($this->action, $this->caches) && !$this->input['isPost'] )
+		if ( in_array($this->action, $this->caches) && !$this->isPost() )
 		{
 			$data  = $this->com('view')->fetch($file);
 			$cache = $this->getCacheObject();
