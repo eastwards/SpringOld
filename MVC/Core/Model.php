@@ -29,11 +29,11 @@ abstract class Model extends ModelActionBase
 	/**
 	 * 构造实体类对象
 	 *
-	 * @access	private
+	 * @access	protected
 	 * @param	string	$name	实体类名(不带后缀Api)
 	 * @return	Entity
 	 */
-	private function createEntity($name)
+	protected function createEntity($name)
 	{
 		//实体对象缓存
 		if ( !isset($this->instance[$name]) )

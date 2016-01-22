@@ -45,6 +45,7 @@ class Session
 			$arr             = explode('.', $_SERVER['HTTP_HOST']);
 			$length          = count($arr);
 			$domain          = '.'.$arr[$length-2].'.'.$arr[$length-1];
+			$domain          = preg_replace("/:\d+/", '', $domain);
 			Session::$domain = $domain;
 		}
 
