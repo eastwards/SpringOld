@@ -79,12 +79,19 @@ abstract class Action extends ModelActionBase
 	 */
 	protected function display($file = null)
 	{
+		if ( !$file ) 
+		{
+			$mod    = strtolower($this->mod);
+			$action = strtolower($this->action);
+			$file   = "{$mod}/{$mod}.{$action}.html";
+		}
+
 		if ( in_array($this->action, $this->caches) && !$this->isPost() )
 		{
 			$data  = $this->com('view')->fetch($file);
 			$cache = $this->getCacheObject();
 			$key   = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-			$cache->set(md5($key), $data);
+			$cache->set(md5($key), $data, $this->expire, 0);
 
 			ob_start('ob_gzip');
 			print $data;
@@ -92,17 +99,7 @@ abstract class Action extends ModelActionBase
 			return ;
 		}
 
-		if ( $file )
-		{
-			$this->com('view')->display($file);
-		}
-		else 
-		{
-			$mod    = strtolower($this->mod);
-			$action = strtolower($this->action);
-			$file   = "{$mod}/{$mod}.{$action}.html";
-			$this->com('view')->display($file);
-		}
+		$this->com('view')->display($file);
 	}
 
 	/**
@@ -136,7 +133,18 @@ abstract class Action extends ModelActionBase
 	 */
 	protected function fetch($file = null)
 	{
-		return $this->com('view')->fetch($file);
+		if ( $file )
+		{
+			return $this->com('view')->fetch($file);
+		}
+		else 
+		{
+			$mod    = strtolower($this->mod);
+			$action = strtolower($this->action);
+			$file   = "{$mod}/{$mod}.{$action}.html";
+			return $this->com('view')->fetch($file);
+		}
+		
 	}
 
 	/**
@@ -169,7 +177,7 @@ abstract class Action extends ModelActionBase
 		{
 			$cache = $this->getCacheObject();
 			$key   = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-			$data  = $cache->get(md5($key));
+			$data  = $cache->get(md5($key), 0);
 			if ( empty($data) )
 			{
 				$this->$action();
