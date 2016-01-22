@@ -11,6 +11,23 @@
  */
 abstract class BaseCacheApi extends Entity
 {
+	/**
+	 * 是否开启缓存
+	 */
+	private $isCached = true;
+
+
+	/**
+	 * 缓存开关
+	 *
+	 * @access	public
+	 * @param	bool	$open	缓存标识(true开启缓存、false关闭缓存)
+	 * @return	void
+	 */
+	public function setCache($open = true)
+	{
+		$this->isCached = $open;
+	}
 	
 	/**
 	 * 得到指定ID的数据(主键查询)
@@ -22,6 +39,11 @@ abstract class BaseCacheApi extends Entity
 	 */
 	public function findOne($id, $col = '')
 	{
+		if ( !$this->isCached )
+		{
+			return parent::findOne($id, $col);
+		}
+
 		if ( empty($id) )
 		{
 			return array();
@@ -56,6 +78,11 @@ abstract class BaseCacheApi extends Entity
 	 */
 	public function find($rule)
 	{
+		if ( !$this->isCached )
+		{
+			return parent::find($rule);
+		}
+
 		$rule['key'] = $this->tableKey;
 		$rule['act'] = 'find';
 		!isset($rule['limit']) && $rule['limit'] = 1;
@@ -83,6 +110,11 @@ abstract class BaseCacheApi extends Entity
 	 */
 	public function findAll($rule)
 	{
+		if ( !$this->isCached )
+		{
+			return parent::findAll($rule);
+		}
+
 		$rule['key']  = $this->tableKey;
 		$rule['act']  = 'findAll';
 		$page         = isset($rule['page']) ? intval($rule['page']) : 1;
@@ -110,6 +142,11 @@ abstract class BaseCacheApi extends Entity
 	 */
 	public function count($rule)
 	{
+		if ( !$this->isCached )
+		{
+			return parent::count($rule);
+		}
+
 		$rule['key'] = $this->tableKey;
 		$rule['act'] = 'count';
 		$cache       = $this->getCacheObject();
