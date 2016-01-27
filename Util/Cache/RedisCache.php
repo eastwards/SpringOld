@@ -11,10 +11,6 @@
  */
 class RedisCache implements ICache
 {
-	/**
-	 * 默认数据库名
-	 */
-	public $name       = 0;
 
 	/**
 	 * 当前连接对象
@@ -55,7 +51,6 @@ class RedisCache implements ICache
 	public function __destruct()
 	{
 		$this->close();
-		$this->name	      = null;
 		$this->connectId  = null;
 		$this->configFile = null;
 		$this->encoding   = null;		
@@ -78,7 +73,7 @@ class RedisCache implements ICache
 			require($this->configFile);
 			$this->connectId = new Redis();
 			$this->connectId->connect($host, $port);
-			$this->connectId->select($this->name);
+			$this->connectId->select($db);
 		}
 	}
 
