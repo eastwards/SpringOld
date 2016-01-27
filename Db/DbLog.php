@@ -89,7 +89,7 @@ class DbLog
 		{
 			$logFile = 'sql-'.date("Y-m-d", time()).'.log';
 			$excute  = number_format(($this->endTime -$this->startTime), 6).'s';
-			file_put_contents(LogDir."/Sql/{$logFile}", "$sql\r\n$excute\r\n", FILE_APPEND);
+			file_put_contents(LogDir."/Sql/{$logFile}", "【{$excute}】\t$sql\r\n", FILE_APPEND);
 		}
 	}
 }
