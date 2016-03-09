@@ -48,6 +48,14 @@ $configs[] = array(
 'className' => 'Page'
 );
 
+//数据分页
+$configs[] = array(
+'id'        => 'pagerNew',
+'enable'    => true,
+'source'    => LibDir.'/MVC/Util/PageNew.php',
+'className' => 'PageNew'
+);
+
 //图片验证码
 $configs[] = array(
 'id'        => 'vi',

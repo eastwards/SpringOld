@@ -317,7 +317,36 @@ abstract class Action extends ModelActionBase
 			throw new SpringException("该组件接口已被移除!");
 		}
 	}
+        
+        /**
+	 * 数据分页
+	 *
+	 * @access	protected
+	 * @param	int		$total		数据总条数
+	 * @param	int		$pageRows	每页显示条数
+	 * @param	int		$point		锚点数(数字分页时有效)
+	 * @param	string	$style		被选中锚点的样式(数字分页时有效)
+	 * @return	array
+	 */
+	protected function pagerNew($total = 0, $pageRows = 20, $point = 10, $style = 'on')
+	{
+		if ( empty($total) ) 
+		{
+			return array();
+		}
 
+		$pager = $this->com('pagerNew');
+		if ( get_class($pager) != 'stdClass' )
+		{
+			$pager->input = $this->input;
+			return $pager->get($total, $pageRows, $point, $style);
+		}
+		else
+		{
+			throw new SpringException("该组件接口已被移除!");
+		}
+	}
+        
 	/**
 	 * 显示消息提示框(带提示信息+跳转)
 	 *
