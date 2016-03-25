@@ -52,15 +52,7 @@ class PageNew
 				$param .= "$key=$value&";
 			}
 		}
-                if($param){
-                    $this->prefix = "?{$param}page=";
-                }else{//链接如果没有斜杠，自动加上斜杠
-                    $lname = trim($_SERVER["REDIRECT_URL"]);
-                    $len = strlen($lname)-1;
-                    if($lname{$len}!="/"){
-                        $this->prefix = $lname."/?page=";
-                    }
-                }
+		$param && $this->prefix = "?{$param}page=";
 		
 		$result['current']	  = $page;
 		$result['first']	  = ($page>1 ? $this->prefix.'1'.$this->suffix : 'javascript:;');

@@ -336,6 +336,12 @@ abstract class Action extends ModelActionBase
 		}
 
 		$pager = $this->com('pagerNew');
+                if ( $this->action == 'index' ){
+                    $pager->prefix = '/'.$this->mod.'/'.$pager->prefix;
+                }else{
+                    $pager->prefix = '/'.$this->mod.'/'.$this->action.'/'.$pager->prefix;
+                }
+                
 		if ( get_class($pager) != 'stdClass' )
 		{
 			$pager->input = $this->input;
