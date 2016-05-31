@@ -123,6 +123,21 @@ class Spring
 	}
 
 	/**
+     * Spring提供可引用内部组件
+     *
+     * @access      public
+     * @return      obj
+     */
+    public static function out($mod='include')
+    {
+        self::init();
+        $appName        = 'IncludeApplication';
+        $app            = new $appName();
+        return $app->process($mod);
+    }
+
+
+	/**
 	 * 框架初始化
 	 *
 	 * @access	private

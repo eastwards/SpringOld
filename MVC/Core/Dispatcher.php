@@ -59,7 +59,7 @@ class Dispatcher implements IDispatcher
 	 * @access	public
 	 * @return	void
 	 */
-	public function parseReq()
+	public function parseReq($_mod_='')
 	{
 		$this->param = $this->inputer->getInput();
 
@@ -105,6 +105,11 @@ class Dispatcher implements IDispatcher
 			{
 				$this->action = $_REQUEST['action'];
 			}
+		}
+		//传值的绑定，处理引用control的代码
+		if ( !empty($_mod_) ){
+			$mod = $_mod_;
+			$this->action = 'index';
 		}
 		
 		$file = strtolower($mod).'.action.php';

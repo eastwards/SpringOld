@@ -49,18 +49,24 @@ class Router implements IDispatcher
 	 * @access	public
 	 * @return	void
 	 */
-	public function parseReq()
+	public function parseReq($_mod_='')
 	{
-		$uri   = str_replace('/?', '/', ltrim(Uri, "/"));
-		$uri   = explode('/', $uri);
-		$count = count($uri);
-		if ( $count < 2 )
-		{
-			throw new SpringException("命令行参数错误!");
+		//传值的绑定，处理引用control的代码
+		if ( empty($_mod_) ){			
+			$uri   = str_replace('/?', '/', ltrim(Uri, "/"));
+			$uri   = explode('/', $uri);
+			$count = count($uri);
+			if ( $count < 2 )
+			{
+				throw new SpringException("命令行参数错误!");
+			}
+			
+			$mod          = $uri[0];
+			$this->action = $uri[1];
+		}else{
+			$mod = $_mod_;
+			$this->action = 'index';
 		}
-		
-		$mod          = $uri[0];
-		$this->action = $uri[1];
 		
 		if ( !(strpos(Uri, '/?') === FALSE) ) {
 			$params = explode('&', $uri[2]);

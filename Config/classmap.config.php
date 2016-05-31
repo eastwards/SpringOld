@@ -7,6 +7,7 @@ return array(
 	'Application'        => LibDir.'/Core/Application.php',
 	'WebApplication'     => LibDir.'/Core/WebApplication.php',
 	'ConsoleApplication' => LibDir.'/Core/ConsoleApplication.php',
+	'IncludeApplication' => LibDir.'/Core/IncludeApplication.php',
 	'Orm'			     => LibDir.'/ORM/Core/Orm.php',
 	'Object'             => LibDir.'/Core/Object.php',
 	'IEntity'            => LibDir.'/ORM/Core/IEntity.php',
