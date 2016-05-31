@@ -1,2 +1,2 @@
 # Spring
-php framework, like java spring.
+php framework, like java spring. use IOC .
